@@ -1,0 +1,53 @@
+# SPDX-FileCopyrightText: 2023 Jochem Rutgers
+#
+# SPDX-License-Identifier: CC0-1.0
+
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: bootstrap
+        run: |
+          dist/ubuntu/bootstrap.sh
+      - name: build
+        run: dist/ubuntu/build.sh
+
+  # Dummy job that depends on all other build-* jobs.
+  build-all-check:
+    needs: [build-ubuntu]
+    runs-on: ubuntu-latest
+    if: success()
+    outputs:
+      success: ${{ steps.setoutput.outputs.success }}
+    steps:
+      - id: setoutput
+        run: echo "success=true" >> $GITHUB_OUTPUT
+
+  # Dummy job to check if build-all-check was successful.
+  build-all:
+    needs: [build-ubuntu, build-all-check]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - run: |
+          passed="${{ needs.build-all-check.outputs.success }}"
+          if [[ $passed == "true" ]]; then
+            echo "Build passed"
+            exit 0
+          else
+            echo "Build failed"
+            exit 1
+          fi
