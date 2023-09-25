@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2023 Jochem Rutgers
+#
+# SPDX-License-Identifier: CC0-1.0
+
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+indent_size = 8
+indent_style = tab
+trim_trailing_whitespace = true
+
+[*.{c,cpp,h}]
+charset = utf-8-bom
+max_line_length = 100
+
+[*.cmake]
+max_line_length = 100
+
+[CMakeLists.txt]
+max_line_length = 100
+
+[*.{py,qml}]
+indent_style = space
+indent_size = 4
+
+[*.{yml,yaml,clang-tidy,clang-format,cmake-format}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+charset = utf-8-bom
+
+[*.diff]
+trim_trailing_whitespace = false
+end_of_line = unset
+
+[*.{rst,rst.in}]
+trim_trailing_whitespace = false
+indent_style = space
+indent_size = 3
+charset = utf-8-bom
+
+[*.cmd]
+end_of_line = crlf
+
+[{extern/*/**,dist/*/build/**}]
+end_of_line = unset
+insert_final_newline = unset
+charset = unset
+indent_size = unset
+indent_style = unset
+trim_trailing_whitespace = unset
+max_line_length = unset

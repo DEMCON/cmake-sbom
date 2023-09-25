@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# SPDX-FileCopyrightText: 2023 Jochem Rutgers
+#
+# SPDX-License-Identifier: CC0-1.0
+
+GIT_VERSION="@GIT_VERSION@"
+GIT_VERSION_HASH="@GIT_HASH@"
+GIT_VERSION_PATH="@GIT_VERSION_PATH@"

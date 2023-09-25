@@ -1,0 +1,10 @@
+# vim:syntax=yaml
+# SPDX-FileCopyrightText: 2023 Jochem Rutgers
+#
+# SPDX-License-Identifier: CC0-1.0
+
+line_width: 100
+tab_size: 8
+use_tabchars: yes
+dangle_parens: yes
+first_comment_is_literal: yes
