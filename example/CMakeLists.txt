@@ -39,8 +39,10 @@ include(sbom)
 # Setup the SBOM to be generated during install.
 sbom_generate(
 	OUTPUT
-	${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/example/sbom-${GIT_VERSION_PATH}.spdx
+		${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/example/sbom-${GIT_VERSION_PATH}.spdx
 	LICENSE CC0-1.0
+	SUPPLIER Demcon
+	SUPPLIER_URL https://demcon.com
 )
 
 # If you want to check REUSE compliance.
