@@ -111,7 +111,8 @@ Generate a unique SPDX identifier.
    
    sbom_spdxid(
       VARIABLE <variable_name>
-      [HINTS <hint>...])
+      [HINTS <hint>...]
+   )
 
 ``VARIABLE``
    The output variable to generate a unique SDPX identifier in.
@@ -236,7 +237,7 @@ Add something to the SBOM.
 
 .. code:: cmake
 
-   sbom_package(
+   sbom_add(
       PACKAGE <name>
       DOWNLOAD_LOCATION <URL>
       [EXTREF <ref>...]
@@ -270,6 +271,10 @@ Add something to the SBOM.
 ^^^^^^^^^^^^^^^^^
 
 Finalize the SBOM and verify its contents and/or format.
+
+.. code:: cmake
+
+   sbom_finalize()
 
 License
 -------
