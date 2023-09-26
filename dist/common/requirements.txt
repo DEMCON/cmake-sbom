@@ -3,4 +3,5 @@
 # SPDX-License-Identifier: CC0-1.0
 
 reuse
+poetry-core; python_version < '3.9' # build dep for reuse
 spdx-tools
