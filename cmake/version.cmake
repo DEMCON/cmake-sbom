@@ -17,8 +17,19 @@ set(VERSION_SOURCE_DIR
 
 find_package(Git)
 
+function(version_show)
+	message(STATUS "${PROJECT_NAME} version is ${GIT_VERSION}")
+endfunction()
+
 # Extract version information from Git of the current project.
 function(version_extract)
+	set(options VERBOSE)
+	set(oneValueArgs)
+	set(multiValueArgs)
+	cmake_parse_arguments(
+		VERSION_EXTRACT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+	)
+
 	set(version_git_head "unknown")
 	set(version_git_hash "")
 	set(version_git_branch "dev")
@@ -105,7 +116,12 @@ function(version_extract)
 			string(REGEX REPLACE "[ \t\r\n]+" ";" GIT_TAGS_LIST ${GIT_TAGS})
 			foreach(tag IN LISTS GIT_TAGS_LIST)
 				git_hash(${tag} GIT_HASH_${tag})
-				message(STATUS "git hash of tag ${tag} is ${GIT_HASH_${tag}}")
+				if(VERSION_EXTRACT_VERBOSE)
+					message(
+						STATUS
+							"git hash of tag ${tag} is ${GIT_HASH_${tag}}"
+					)
+				endif()
 			endforeach()
 		endif()
 	else()
@@ -151,7 +167,9 @@ function(version_extract)
 	    PARENT_SCOPE
 	)
 
-	message(STATUS "${PROJECT_NAME} version is ${GIT_VERSION}")
+	if(VERSION_EXTRACT_VERBOSE)
+		version_show()
+	endif()
 endfunction()
 
 # Generate version files and a static library based on the extract version information of the
@@ -248,3 +266,4 @@ endfunction()
 
 version_extract()
 version_generate()
+version_show()
