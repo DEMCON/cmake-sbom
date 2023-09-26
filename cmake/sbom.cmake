@@ -7,7 +7,7 @@ if(COMMAND sbom_generate)
 endif()
 
 include(GNUInstallDirs)
-include(version)
+include(${CMAKE_CURRENT_LIST_DIR}/version.cmake)
 
 find_package(
 	Python3
