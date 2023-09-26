@@ -159,7 +159,7 @@ DocumentNamespace: https://demcon.com/spdxdocs/${PROJECT_NAME}-${GIT_VERSION}
 Creator: Organization: Demcon ()
 Creator: Tool: cmake-sbom
 CreatorComment: <text>This SPDX document was created from CMake ${CMAKE_VERSION}, using cmake-sbom
-from https://gitlab.demcon.local/demcon/cmake-sbom</text>
+from https://github.com/DEMCON/cmake-sbom</text>
 Created: ${NOW_UTC}
 
 PackageName: ${CMAKE_CXX_COMPILER_ID}
