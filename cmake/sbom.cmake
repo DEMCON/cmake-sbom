@@ -16,6 +16,8 @@ find_package(
 )
 
 # Common Platform Enumeration: https://nvd.nist.gov/products/cpe
+#
+# TODO: This detection can be improved.
 if(WIN32)
 	if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
 		set(_arch "x64")
@@ -55,8 +57,6 @@ else()
 endif()
 
 # Sets the given variable to a unique SPDIXID-compatible value.
-#
-# Usage: sbom_spdxid VARIABLE <variable_name> [HINTS <hint>...])
 function(sbom_spdxid)
 	set(options)
 	set(oneValueArgs VARIABLE)
@@ -100,14 +100,17 @@ endfunction()
 
 # Starts SBOM generation. Call sbom_add() and friends afterwards. End with sbom_finalize(). Input
 # files allow having variables and generator expressions.
-#
-# Usage: sbom_generate(OUTPUT <filename> [PROJECT <name>] [INPUT <filename>... | [LICENSE <license>]
-# [COPYRIGHT <copyright>]])
-#
-# If no INPUTs are given, a standard SPDX header is produced.
 function(sbom_generate)
 	set(options)
-	set(oneValueArgs OUTPUT LICENSE COPYRIGHT PROJECT)
+	set(oneValueArgs
+	    OUTPUT
+	    LICENSE
+	    COPYRIGHT
+	    PROJECT
+	    SUPPLIER
+	    SUPPLIER_URL
+	    NAMESPACE
+	)
 	set(multiValueArgs INPUT)
 	cmake_parse_arguments(
 		SBOM_GENERATE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -116,21 +119,55 @@ function(sbom_generate)
 	string(TIMESTAMP NOW_UTC UTC)
 
 	if("${SBOM_GENERATE_OUTPUT}" STREQUAL "")
-		message(FATAL_ERROR "Missing OUTPUT")
+		set(SBOM_GENERATE_OUTPUT
+		    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${PROJECT_NAME}-sbom-${GIT_VERSION_PATH}.spdx"
+		)
 	endif()
 
 	if("${SBOM_GENERATE_LICENSE}" STREQUAL "")
 		set(SBOM_GENERATE_LICENSE "NOASSERTION")
 	endif()
 
+	if("${SBOM_GENERATE_PROJECT}" STREQUAL "")
+		set(SBOM_GENERATE_PROJECT "${PROJECT_NAME}")
+	endif()
+
+	if("${SBOM_GENERATE_SUPPLIER}" STREQUAL "")
+		set(SBOM_GENERATE_SUPPLIER "${SBOM_SUPPLIER}")
+	elseif("${SBOM_SUPPLIER_URL}" STREQUAL "")
+		set(SBOM_SUPPLIER
+		    "${SBOM_GENERATE_SUPPLIER}"
+		    CACHE STRING "SBOM supplier"
+		)
+	endif()
+
 	if("${SBOM_GENERATE_COPYRIGHT}" STREQUAL "")
 		# There is a race when building at New Year's Eve...
 		string(TIMESTAMP NOW_YEAR "%Y" UTC)
-		set(SBOM_GENERATE_COPYRIGHT "${NOW_YEAR} Demcon")
+		set(SBOM_GENERATE_COPYRIGHT "${NOW_YEAR} ${SBOM_GENERATE_SUPPLIER}")
 	endif()
 
-	if("${SBOM_GENERATE_PROJECT}" STREQUAL "")
-		set(SBOM_GENERATE_PROJECT "${PROJECT_NAME}")
+	if("${SBOM_GENERATE_SUPPLIER}" STREQUAL "")
+		message(FATAL_ERROR "Specify a SUPPLIER, or set SBOM_SUPPLIER")
+	endif()
+
+	if("${SBOM_GENERATE_SUPPLIER_URL}" STREQUAL "")
+		set(SBOM_GENERATE_SUPPLIER_URL "${SBOM_SUPPLIER_URL}")
+	elseif("${SBOM_SUPPLIER_URL}" STREQUAL "")
+		set(SBOM_SUPPLIER_URL
+		    "${SBOM_GENERATE_SUPPLIER_URL}"
+		    CACHE STRING "SBOM supplier URL"
+		)
+	endif()
+
+	if("${SBOM_GENERATE_SUPPLIER_URL}" STREQUAL "")
+		message(FATAL_ERROR "Specify a SUPPLIER_URL, or set SBOM_SUPPLIER_URL")
+	endif()
+
+	if("${SBOM_GENERATE_NAMESPACE}" STREQUAL "")
+		set(SBOM_GENERATE_NAMESPACE
+		    "${SBOM_GENERATE_SUPPLIER_URL}/spdxdocs/${PROJECT_NAME}-${GIT_VERSION}"
+		)
 	endif()
 
 	string(REGEX REPLACE "[^-A_Za-z.]+" "-" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
@@ -155,8 +192,8 @@ function(sbom_generate)
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
 DocumentName: ${doc_name}
-DocumentNamespace: https://demcon.com/spdxdocs/${PROJECT_NAME}-${GIT_VERSION}
-Creator: Organization: Demcon ()
+DocumentNamespace: ${SBOM_GENERATE_NAMESPACE}
+Creator: Organization: ${SBOM_GENERATE_SUPPLIER}
 Creator: Tool: cmake-sbom
 CreatorComment: <text>This SPDX document was created from CMake ${CMAKE_VERSION}, using cmake-sbom
 from https://github.com/DEMCON/cmake-sbom</text>
@@ -179,14 +216,14 @@ RelationshipComment: <text>SPDXRef-${PROJECT_NAME} is built by compiler ${CMAKE_
 PackageName: ${PROJECT_NAME}
 SPDXID: SPDXRef-${SBOM_GENERATE_PROJECT}
 ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
-ExternalRef: PACKAGE-MANAGER purl pkg:supplier/Demcon/${PROJECT_NAME}@${GIT_VERSION}
+ExternalRef: PACKAGE-MANAGER purl pkg:supplier/${SBOM_GENERATE_SUPPLIER}/${PROJECT_NAME}@${GIT_VERSION}
 PackageVersion: ${GIT_VERSION}
-PackageSupplier: Organization: Demcon
+PackageSupplier: Organization: ${SBOM_GENERATE_SUPPLIER}
 PackageDownloadLocation: NOASSERTION
 PackageLicenseConcluded: ${SBOM_GENERATE_LICENSE}
 PackageLicenseDeclared: ${SBOM_GENERATE_LICENSE}
 PackageCopyrightText: ${SBOM_GENERATE_COPYRIGHT}
-PackageHomePage: https://demcon.com
+PackageHomePage: ${SBOM_GENERATE_SUPPLIER_URL}
 PackageComment: <text>Built by CMake ${CMAKE_VERSION} with ${CMAKE_BUILD_TYPE} configuration for ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_PROCESSOR})</text>
 BuiltDate: ${NOW_UTC}
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
@@ -278,7 +315,7 @@ function(sbom_file)
 
 	sbom_spdxid(
 		VARIABLE SBOM_FILE_SPDXID HINTS "${SBOM_FILE_SPDXID}"
-		"SPDXRef-${SBOM_FILE_FILENAME}"
+						"SPDXRef-${SBOM_FILE_FILENAME}"
 	)
 
 	if("${SBOM_FILE_FILETYPE}" STREQUAL "")
@@ -347,8 +384,7 @@ function(sbom_target)
 
 	get_target_property(_type ${SBOM_TARGET_TARGET} TYPE)
 	if("${_type}" STREQUAL "EXECUTABLE")
-		sbom_file(FILENAME
-			  ${CMAKE_INSTALL_BINDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
+		sbom_file(FILENAME ${CMAKE_INSTALL_BINDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
 			  FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
 		)
 	else()
@@ -375,7 +411,7 @@ function(sbom_directory)
 
 	sbom_spdxid(
 		VARIABLE SBOM_DIRECTORY_SPDXID HINTS "${SBOM_DIRECTORY_SPDXID}"
-		"SPDXRef-${SBOM_DIRECTORY_DIRECTORY}"
+						     "SPDXRef-${SBOM_DIRECTORY_DIRECTORY}"
 	)
 
 	if("${SBOM_DIRECTORY_FILETYPE}" STREQUAL "")
@@ -429,11 +465,6 @@ Relationship: ${SBOM_DIRECTORY_RELATIONSHIP}-\${_count}
 endfunction()
 
 # Append a package (without files) to the SBOM. Use this after calling sbom_generate().
-#
-# Usage:
-#
-# sbom_package(PACKAGE <name> DOWNLOAD_LOCATION <URL> [VERSION <version>] [LICENSE <license>]
-# [RELATIONSHIP <string>] [SPDXID <hint>] [EXTREF <ref>]...)
 function(sbom_package)
 	set(options)
 	set(oneValueArgs PACKAGE VERSION LICENSE DOWNLOAD_LOCATION RELATIONSHIP SPDXID)
@@ -452,7 +483,7 @@ function(sbom_package)
 
 	sbom_spdxid(
 		VARIABLE SBOM_PACKAGE_SPDXID HINTS "${SBOM_PACKAGE_SPDXID}"
-		"SPDXRef-${SBOM_PACKAGE_PACKAGE}"
+						   "SPDXRef-${SBOM_PACKAGE_PACKAGE}"
 	)
 
 	set(_fields)
