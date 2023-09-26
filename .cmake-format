@@ -3,8 +3,59 @@
 #
 # SPDX-License-Identifier: CC0-1.0
 
-line_width: 100
-tab_size: 8
-use_tabchars: yes
-dangle_parens: yes
-first_comment_is_literal: yes
+parse:
+  additional_commands:
+    sbom_spdxid:
+      kwargs:
+        VARIABLE: 1
+        HINTS: '*'
+    sbom_generate:
+      kwargs:
+        OUTPUT: 1
+        LICENSE: 1
+        SUPPLIER: 1
+        SUPPLIER_URL: 1
+    sbom_file:
+      kwargs:
+        FILENAME: 1
+        FILETYPE: 1
+        RELATIONSHIP: 1
+        SPDXID: 1
+    sbom_target:
+      kwargs:
+        TARGET: 1
+    sbom_directory:
+      kwargs:
+        DIRECTORY: 1
+        FILETYPE: 1
+        RELATIONSHIP: 1
+        SPDXID: 1
+    sbom_package:
+      kwargs:
+        PACKAGE: 1
+        VERSION: 1
+        LICENSE: 1
+        DOWNLOAD_LOCATION: 1
+        RELATIONSHIP: 1
+        SPDXID: 1
+    sbom_add:
+      kwargs:
+        FILENAME: 1
+        FILETYPE: 1
+        RELATIONSHIP: 1
+        SPDXID: 1
+        TARGET: 1
+        DIRECTORY: 1
+        PACKAGE: 1
+        VERSION: 1
+        LICENSE: 1
+        DOWNLOAD_LOCATION: 1
+
+format:
+  line_width: 100
+  tab_size: 8
+  use_tabchars: yes
+  dangle_parens: yes
+
+markup:
+  first_comment_is_literal: yes
