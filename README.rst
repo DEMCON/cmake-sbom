@@ -247,6 +247,7 @@ Add something to the SBOM.
       [LICENSE <string>]
       [RELATIONSHIP <string>]
       [SPDXID <id>]
+      [SUPPLIER <name>]
       [VERSION <version>]
    )
 
@@ -266,6 +267,9 @@ Add something to the SBOM.
 ``LICENSE``
    License of the package.
    Defaults to ``NOASSERTION`` when not specified.
+
+``SUPPLIER``
+   Package supplier, which can be ``Person: name (email)``, or ``Organization: name (email)``.
 
 ``VERSION``
    Version of the package.

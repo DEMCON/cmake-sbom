@@ -37,6 +37,7 @@ parse:
         DOWNLOAD_LOCATION: 1
         RELATIONSHIP: 1
         SPDXID: 1
+        SUPPLIER: 1
     sbom_add:
       kwargs:
         FILENAME: 1
