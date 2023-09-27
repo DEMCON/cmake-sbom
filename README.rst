@@ -103,7 +103,7 @@ Generally, the following sequence is executed to create the SBOM:
 ``cmake/sbom.cmake`` provides the following functions:
 
 ``sbom_spdxid``
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^
 
 Generate a unique SPDX identifier.
 
@@ -181,7 +181,7 @@ Alternatively, you can specify your own template.
    Variables and generator expressions are supported in these files.
 
 ``sbom_add``
-^^^^^^^^^^^
+^^^^^^^^^^^^
 
 Add something to the SBOM.
 
@@ -201,14 +201,17 @@ Add something to the SBOM.
 
 ``FILETYPE``
    The SPDX File Type.
-   Refer to the `SPDX specification <SPDX>`_
+   Refer to the `SPDX specification <SPDX>`_.
 
 ``RELATIONSHIP``
    A relationship definition related to this file.
+   The string ``@SBOM_LAST_SPDXID@`` will be replaced by the SPDXID that is used for this SBOM item.
+   Refer to the `SPDX specification <SPDX>`_.
 
 ``SPDXID``
    The ID to use.
    By default, generate a new one.
+   Whether or not this is specified, the variable ``SBOM_LAST_SPDXID`` is set to just generated/used SPDXID, which could be used for later relationship definitions.
 
 .. code:: cmake
 
@@ -216,11 +219,11 @@ Add something to the SBOM.
       DIRECTORY <path>
       FILETYPE <type>
       [RELATIONSHIP <string>]
-      [SPDXID <id>]
    )
 
 ``DIRECTORY``
    A path to the directory, relative to ``CMAKE_INSTALL_PREFIX``, for which all files are to be added to the SBOM recursively.
+   Generator expressions are supported.
 
 .. code:: cmake
    
