@@ -236,6 +236,11 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 				file(APPEND \"${SBOM_GENERATE_OUTPUT}\" \"\${_f_contents}\")
 			"
 		)
+
+		set(SBOM_LAST_SPDXID
+		    "SPDXRef-${SBOM_GENERATE_PROJECT}"
+		    PARENT_SCOPE
+		)
 	else()
 		foreach(_f IN LISTS SBOM_GENERATE_INPUT)
 			set(_f_in "${CMAKE_CURRENT_BINARY_DIR}/${_f}")
@@ -253,6 +258,11 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 				"
 			)
 		endforeach()
+
+		set(SBOM_LAST_SPDXID
+		    ""
+		    PARENT_SCOPE
+		)
 	endif()
 
 	set_property(GLOBAL PROPERTY sbom_filename "${SBOM_GENERATE_OUTPUT}")
@@ -318,6 +328,11 @@ function(sbom_file)
 						"SPDXRef-${SBOM_FILE_FILENAME}"
 	)
 
+	set(SBOM_LAST_SPDXID
+	    "${SBOM_FILE_SPDXID}"
+	    PARENT_SCOPE
+	)
+
 	if("${SBOM_FILE_FILETYPE}" STREQUAL "")
 		message(FATAL_ERROR "Missing FILETYPE argument")
 	endif()
@@ -327,6 +342,10 @@ function(sbom_file)
 
 	if("${SBOM_FILE_RELATIONSHIP}" STREQUAL "")
 		set(SBOM_FILE_RELATIONSHIP "SPDXRef-${_sbom_project} CONTAINS ${SBOM_FILE_SPDXID}")
+	else()
+		string(REPLACE "@SBOM_LAST_SPDXID@" "${SBOM_FILE_SPDXID}" SBOM_FILE_RELATIONSHIP
+			       "${SBOM_FILE_RELATIONSHIP}"
+		)
 	endif()
 
 	if("${_sbom}" STREQUAL "")
@@ -390,16 +409,17 @@ function(sbom_target)
 	else()
 		message(FATAL_ERROR "Unsupported target type ${_type}")
 	endif()
+
+	set(SBOM_LAST_SPDXID
+	    "${SBOM_LAST_SPDXID}"
+	    PARENT_SCOPE
+	)
 endfunction()
 
 # Append all files recursively in a directory to the SBOM. Use this after calling sbom_generate().
-#
-# Usage: sbom_directory(DIRECTORY <dirname> FILETYPE <type> [RELATIONSHIP <string>] [SPDXID <hint>])
-#
-# The FILENAME must be relative to CMAKE_INSTALL_PREFIX. Generator expressions are supported.
 function(sbom_directory)
 	set(options)
-	set(oneValueArgs DIRECTORY FILETYPE RELATIONSHIP SPDXID)
+	set(oneValueArgs DIRECTORY FILETYPE RELATIONSHIP)
 	set(multiValueArgs)
 	cmake_parse_arguments(
 		SBOM_DIRECTORY "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -409,10 +429,9 @@ function(sbom_directory)
 		message(FATAL_ERROR "Missing DIRECTORY argument")
 	endif()
 
-	sbom_spdxid(
-		VARIABLE SBOM_DIRECTORY_SPDXID HINTS "${SBOM_DIRECTORY_SPDXID}"
-						     "SPDXRef-${SBOM_DIRECTORY_DIRECTORY}"
-	)
+	sbom_spdxid(VARIABLE SBOM_DIRECTORY_SPDXID HINTS "SPDXRef-${SBOM_DIRECTORY_DIRECTORY}")
+
+	set(SBOM_LAST_SPDXID "${SBOM_DIRECTORY_SPDXID}")
 
 	if("${SBOM_DIRECTORY_FILETYPE}" STREQUAL "")
 		message(FATAL_ERROR "Missing FILETYPE argument")
@@ -424,6 +443,10 @@ function(sbom_directory)
 	if("${SBOM_DIRECTORY_RELATIONSHIP}" STREQUAL "")
 		set(SBOM_DIRECTORY_RELATIONSHIP
 		    "SPDXRef-${_sbom_project} CONTAINS ${SBOM_DIRECTORY_SPDXID}"
+		)
+	else()
+		string(REPLACE "@SBOM_LAST_SPDXID@" "${SBOM_DIRECTORY_SPDXID}"
+			       SBOM_DIRECTORY_RELATIONSHIP "${SBOM_DIRECTORY_RELATIONSHIP}"
 		)
 	endif()
 
@@ -462,6 +485,11 @@ Relationship: ${SBOM_DIRECTORY_RELATIONSHIP}-\${_count}
 	)
 
 	install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_DIRECTORY_SPDXID}.cmake)
+
+	set(SBOM_LAST_SPDXID
+	    ""
+	    PARENT_SCOPE
+	)
 endfunction()
 
 # Append a package (without files) to the SBOM. Use this after calling sbom_generate().
@@ -484,6 +512,11 @@ function(sbom_package)
 	sbom_spdxid(
 		VARIABLE SBOM_PACKAGE_SPDXID HINTS "${SBOM_PACKAGE_SPDXID}"
 						   "SPDXRef-${SBOM_PACKAGE_PACKAGE}"
+	)
+
+	set(SBOM_LAST_SPDXID
+	    "${SBOM_PACKAGE_SPDXID}"
+	    PARENT_SCOPE
 	)
 
 	set(_fields)
@@ -516,6 +549,10 @@ ExternalRef: ${_ref}"
 	if("${SBOM_PACKAGE_RELATIONSHIP}" STREQUAL "")
 		set(SBOM_PACKAGE_RELATIONSHIP
 		    "SPDXRef-${_sbom_project} DEPENDS_ON ${SBOM_PACKAGE_SPDXID}"
+		)
+	else()
+		string(REPLACE "@SBOM_LAST_SPDXID@" "${SBOM_PACKAGE_SPDXID}"
+			       SBOM_PACKAGE_RELATIONSHIP "${SBOM_PACKAGE_RELATIONSHIP}"
 		)
 	endif()
 
@@ -567,6 +604,11 @@ function(sbom_add type)
 	else()
 		message(FATAL_ERROR "Unsupported sbom_add(${type})")
 	endif()
+
+	set(SBOM_LAST_SPDXID
+	    "${SBOM_LAST_SPDXID}"
+	    PARENT_SCOPE
+	)
 endfunction()
 
 # Adds a target that performs `python3 -m reuse lint'.  Python is required with the proper packages
