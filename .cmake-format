@@ -29,7 +29,6 @@ parse:
         DIRECTORY: 1
         FILETYPE: 1
         RELATIONSHIP: 1
-        SPDXID: 1
     sbom_package:
       kwargs:
         PACKAGE: 1
