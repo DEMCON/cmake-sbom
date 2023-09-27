@@ -84,26 +84,26 @@ The package dependencies are all black boxes; their files are not specified.
 
 Generally, the following sequence is executed to create the SBOM:
 
-.. code: cmake
-
+.. code:: cmake
+   
    # Start SBOM generation. Optionally, provide template files, licence, copyright.
    sbom_generate(OUTPUT some_output_file.spdx)
-
+   
    # Call for every artifact that should be recorded:
    sbom_add(TARGET some_target)
    sbom_add(FILENAME some_filename ...)
    sbom_add(DIRECTORY all_files_from_some_directory ...)
-
+   
    # To indicate dependencies on other packages/libraries/etc.:
    sbom_add(PACKAGE some_dependency ...)
-
+   
    # Finally:
    sbom_finalize()
 
 ``cmake/sbom.cmake`` provides the following functions:
 
 ``sbom_spdxid``
-^^^^^^^^^^^^^^^
+```````````````
 
 Generate a unique SPDX identifier.
 
@@ -123,7 +123,7 @@ Generate a unique SPDX identifier.
    If no hint is specified, a unique identifier is returned, with unspecified format.
 
 ``sbom_generate``
-^^^^^^^^^^^^^^^^^
+`````````````````
 
 Generate the header of the SBOM, based on a standard template where the given details are filled in.
 
@@ -181,7 +181,7 @@ Alternatively, you can specify your own template.
    Variables and generator expressions are supported in these files.
 
 ``sbom_add``
-^^^^^^^^^^^^
+````````````
 
 Add something to the SBOM.
 
@@ -271,7 +271,7 @@ Add something to the SBOM.
    Version of the package.
 
 ``sbom_finalize``
-^^^^^^^^^^^^^^^^^
+`````````````````
 
 Finalize the SBOM and verify its contents and/or format.
 
