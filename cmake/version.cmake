@@ -193,7 +193,7 @@ function(version_generate)
 		string(REGEX REPLACE "^([0-9]+)\\.([0-9]+)\\.([0-9]+)([-+].*)?$" "\\3"
 				     GIT_VERSION_PATCH "${GIT_VERSION}"
 		)
-		string(REGEX REPLACE "^([0-9]+)\\.([0-9]+)\\.([0-9]+)([-+].*)?$" "\\4"
+		string(REGEX REPLACE "^([0-9]+)\\.([0-9]+)\\.([0-9]+)(([-+].*)?)$" "\\4"
 				     GIT_VERSION_SUFFIX "${GIT_VERSION}"
 		)
 	else()
