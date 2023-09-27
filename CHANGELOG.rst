@@ -20,6 +20,18 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 `Unreleased`_
 -------------
 
+Added
+`````
+
+...
+
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.0.0...HEAD
+
+
+
+`1.0.0`_ - 2023-09-27
+---------------------
+
 Initial version.
 
 Added
@@ -28,4 +40,4 @@ Added
 - Git version extraction.
 - SPDX SBOM generation from CMake.
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom
+.. _1.0.0: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.0.0
