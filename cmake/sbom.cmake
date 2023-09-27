@@ -208,6 +208,7 @@ PackageDownloadLocation: NOASSERTION
 PackageLicenseConcluded: NOASSERTION
 PackageLicenseDeclared: NOASSERTION
 PackageCopyrightText: NOASSERTION
+PackageSupplier: Organization: Anonymous
 FilesAnalyzed: false
 PackageSummary: <text>The compiler as identified by CMake, running on ${CMAKE_HOST_SYSTEM_NAME} (${CMAKE_HOST_SYSTEM_PROCESSOR})</text>
 PrimaryPackagePurpose: APPLICATION
@@ -508,7 +509,7 @@ endfunction()
 # Append a package (without files) to the SBOM. Use this after calling sbom_generate().
 function(sbom_package)
 	set(options)
-	set(oneValueArgs PACKAGE VERSION LICENSE DOWNLOAD_LOCATION RELATIONSHIP SPDXID)
+	set(oneValueArgs PACKAGE VERSION LICENSE DOWNLOAD_LOCATION RELATIONSHIP SPDXID SUPPLIER)
 	set(multiValueArgs EXTREF)
 	cmake_parse_arguments(
 		SBOM_PACKAGE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -534,10 +535,12 @@ function(sbom_package)
 
 	set(_fields)
 
-	if(NOT "${SBOM_PACKAGE_VERSION}" STREQUAL "")
-		set(_fields "${_fields}
-PackageVersion: ${SBOM_PACKAGE_VERSION}"
-		)
+	if("${SBOM_PACKAGE_VERSION}" STREQUAL "")
+		set(SBOM_PACKAGE_VERSION "unknown")
+	endif()
+
+	if("${SBOM_PACKAGE_SUPPLIER}" STREQUAL "")
+		set(SBOM_PACKAGE_SUPPLIER "Person: Anonymous")
 	endif()
 
 	if(NOT "${SBOM_PACKAGE_LICENSE}" STREQUAL "")
@@ -586,6 +589,8 @@ ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
 PackageDownloadLocation: ${SBOM_PACKAGE_DOWNLOAD_LOCATION}
 PackageLicenseDeclared: NOASSERTION
 PackageCopyrightText: NOASSERTION
+PackageVersion: ${SBOM_PACKAGE_VERSION}
+PackageSupplier: ${SBOM_PACKAGE_SUPPLIER}
 FilesAnalyzed: false${_fields}
 Relationship: ${SBOM_PACKAGE_RELATIONSHIP}
 Relationship: ${SBOM_PACKAGE_SPDXID} CONTAINS NOASSERTION
