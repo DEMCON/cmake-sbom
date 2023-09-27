@@ -175,12 +175,14 @@ function(sbom_generate)
 	install(
 		CODE "
 		message(STATUS \"Installing: ${SBOM_GENERATE_OUTPUT}\")
-		file(WRITE \"${SBOM_GENERATE_OUTPUT}\" \"\")
+		file(WRITE \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\")
 		"
 	)
 
+	file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/sbom)
+
 	if("${SBOM_GENERATE_INPUT}" STREQUAL "")
-		set(_f "${CMAKE_CURRENT_BINARY_DIR}/SPDXRef-DOCUMENT.cmake")
+		set(_f "${CMAKE_CURRENT_BINARY_DIR}/SPDXRef-DOCUMENT.spdx.in")
 
 		get_filename_component(doc_name "${SBOM_GENERATE_OUTPUT}" NAME_WE)
 
@@ -225,6 +227,7 @@ PackageLicenseDeclared: ${SBOM_GENERATE_LICENSE}
 PackageCopyrightText: ${SBOM_GENERATE_COPYRIGHT}
 PackageHomePage: ${SBOM_GENERATE_SUPPLIER_URL}
 PackageComment: <text>Built by CMake ${CMAKE_VERSION} with ${CMAKE_BUILD_TYPE} configuration for ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_PROCESSOR})</text>
+PackageVerificationCode: \${SBOM_VERIFICATION_CODE}
 BuiltDate: ${NOW_UTC}
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 "
@@ -233,7 +236,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 		install(
 			CODE "
 				file(READ \"${_f}\" _f_contents)
-				file(APPEND \"${SBOM_GENERATE_OUTPUT}\" \"\${_f_contents}\")
+				file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\${_f_contents}\")
 			"
 		)
 
@@ -254,7 +257,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 			install(
 				CODE "
 					file(READ \"${_f_in_gen}\" _f_contents)
-					file(APPEND \"${SBOM_GENERATE_OUTPUT}\" \"\${_f_contents}\")
+					file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\${_f_contents}\")
 				"
 			)
 		endforeach()
@@ -265,11 +268,12 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 		)
 	endif()
 
+	install(CODE "set(SBOM_VERIFICATION_CODES)")
+
 	set_property(GLOBAL PROPERTY sbom_filename "${SBOM_GENERATE_OUTPUT}")
 	set_property(GLOBAL PROPERTY sbom_project "${SBOM_GENERATE_PROJECT}")
 	set_property(GLOBAL PROPERTY sbom_spdxids 0)
 
-	file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/sbom)
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
 endfunction()
 
@@ -287,6 +291,13 @@ function(sbom_finalize)
 	file(
 		WRITE ${PROJECT_BINARY_DIR}/sbom/verify.cmake
 		"
+		message(STATUS \"Finalizing: ${_sbom}\")
+		list(SORT SBOM_VERIFICATION_CODES)
+		string(REPLACE \";\" \"\" SBOM_VERIFICATION_CODES \"\${SBOM_VERIFICATION_CODES}\")
+		file(WRITE \"${PROJECT_BINARY_DIR}/sbom/verification.txt\" \"\${SBOM_VERIFICATION_CODES}\")
+		file(SHA1 \"${PROJECT_BINARY_DIR}/sbom/verification.txt\" SBOM_VERIFICATION_CODE)
+		configure_file(\"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"${_sbom}\")
+
 		message(STATUS \"Verifying: ${_sbom}\")
 		execute_process(
 			COMMAND ${Python3_EXECUTABLE} -m spdx_tools.spdx.clitools.pyspdxtools
@@ -365,7 +376,8 @@ function(sbom_file)
 				endif()
 			else()
 				file(SHA1 ${CMAKE_INSTALL_PREFIX}/${SBOM_FILE_FILENAME} _sha1)
-				file(APPEND \"${_sbom}\"
+				list(APPEND SBOM_VERIFICATION_CODES \${_sha1})
+				file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
 \"
 FileName: ./${SBOM_FILE_FILENAME}
 SPDXID: ${SBOM_FILE_SPDXID}
@@ -467,7 +479,8 @@ function(sbom_directory)
 			set(_count 0)
 			foreach(_f IN LISTS _files)
 				file(SHA1 \"${CMAKE_INSTALL_PREFIX}/\${_f}\" _sha1)
-				file(APPEND \"${_sbom}\"
+				list(APPEND SBOM_VERIFICATION_CODES \${_sha1})
+				file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
 \"
 FileName: ./\${_f}
 SPDXID: ${SBOM_DIRECTORY_SPDXID}-\${_count}
@@ -565,7 +578,7 @@ ExternalRef: ${_ref}"
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_PACKAGE_SPDXID}.cmake
 		CONTENT
 			"
-			file(APPEND \"${_sbom}\"
+			file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
 \"
 PackageName: ${SBOM_PACKAGE_PACKAGE}
 SPDXID: ${SBOM_PACKAGE_SPDXID}
