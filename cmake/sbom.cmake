@@ -170,11 +170,12 @@ function(sbom_generate)
 		)
 	endif()
 
-	string(REGEX REPLACE "[^-A_Za-z.]+" "-" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
+	string(REGEX REPLACE "[^-A-Za-z.]+" "-" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
 
 	install(
 		CODE "
 		message(STATUS \"Installing: ${SBOM_GENERATE_OUTPUT}\")
+		set(SBOM_EXT_DOCS)
 		file(WRITE \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\")
 		"
 	)
@@ -199,7 +200,7 @@ Creator: Organization: ${SBOM_GENERATE_SUPPLIER}
 Creator: Tool: cmake-sbom
 CreatorComment: <text>This SPDX document was created from CMake ${CMAKE_VERSION}, using cmake-sbom
 from https://github.com/DEMCON/cmake-sbom</text>
-Created: ${NOW_UTC}
+Created: ${NOW_UTC}\${SBOM_EXT_DOCS}
 
 PackageName: ${CMAKE_CXX_COMPILER_ID}
 SPDXID: SPDXRef-compiler
@@ -213,8 +214,8 @@ FilesAnalyzed: false
 PackageSummary: <text>The compiler as identified by CMake, running on ${CMAKE_HOST_SYSTEM_NAME} (${CMAKE_HOST_SYSTEM_PROCESSOR})</text>
 PrimaryPackagePurpose: APPLICATION
 Relationship: SPDXRef-compiler CONTAINS NOASSERTION
-Relationship: SPDXRef-compiler BUILD_DEPENDENCY_OF SPDXRef-${PROJECT_NAME}
-RelationshipComment: <text>SPDXRef-${PROJECT_NAME} is built by compiler ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER}) version ${CMAKE_CXX_COMPILER_VERSION}</text>
+Relationship: SPDXRef-compiler BUILD_DEPENDENCY_OF SPDXRef-${SBOM_GENERATE_PROJECT}
+RelationshipComment: <text>SPDXRef-${SBOM_GENERATE_PROJECT} is built by compiler ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER}) version ${CMAKE_CXX_COMPILER_VERSION}</text>
 
 PackageName: ${PROJECT_NAME}
 SPDXID: SPDXRef-${SBOM_GENERATE_PROJECT}
@@ -509,7 +510,15 @@ endfunction()
 # Append a package (without files) to the SBOM. Use this after calling sbom_generate().
 function(sbom_package)
 	set(options)
-	set(oneValueArgs PACKAGE VERSION LICENSE DOWNLOAD_LOCATION RELATIONSHIP SPDXID SUPPLIER)
+	set(oneValueArgs
+	    PACKAGE
+	    VERSION
+	    LICENSE
+	    DOWNLOAD_LOCATION
+	    RELATIONSHIP
+	    SPDXID
+	    SUPPLIER
+	)
 	set(multiValueArgs EXTREF)
 	cmake_parse_arguments(
 		SBOM_PACKAGE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -605,11 +614,96 @@ Relationship: ${SBOM_PACKAGE_SPDXID} CONTAINS NOASSERTION
 	)
 endfunction()
 
+# Add a reference to a package in an external file.
+function(sbom_external)
+	set(options)
+	set(oneValueArgs EXTERNAL FILENAME RENAME SPDXID RELATIONSHIP)
+	set(multiValueArgs)
+	cmake_parse_arguments(
+		SBOM_EXTERNAL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+	)
+
+	if("${SBOM_EXTERNAL_EXTERNAL}" STREQUAL "")
+		message(FATAL_ERROR "Missing EXTERNAL")
+	endif()
+
+	if("${SBOM_EXTERNAL_FILENAME}" STREQUAL "")
+		message(FATAL_ERROR "Missing FILENAME")
+	endif()
+
+	if("${SBOM_EXTERNAL_SPDXID}" STREQUAL "")
+		get_property(_spdxids GLOBAL PROPERTY sbom_spdxids)
+		set(SBOM_EXTERNAL_SPDXID "DocumentRef-${_spdxids}")
+		math(EXPR _spdxids "${_spdxids} + 1")
+		set_property(GLOBAL PROPERTY sbom_spdxids "${_spdxids}")
+	endif()
+
+	if(NOT "${SBOM_EXTERNAL_SPDXID}" MATCHES "^DocumentRef-[-a-zA-Z0-9]+$")
+		message(FATAL_ERROR "Invalid DocumentRef \"${SBOM_EXTERNAL_SPDXID}\"")
+	endif()
+
+	set(SBOM_LAST_SPDXID
+	    "${SBOM_EXTERNAL_SPDXID}"
+	    PARENT_SCOPE
+	)
+
+	get_property(_sbom GLOBAL PROPERTY sbom_filename)
+	if("${_sbom}" STREQUAL "")
+		message(FATAL_ERROR "Call sbom_generate() first")
+	endif()
+
+	get_filename_component(sbom_dir "${_sbom}" DIRECTORY)
+	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
+
+	if("${SBOM_EXTERNAL_RELATIONSHIP}" STREQUAL "")
+		set(SBOM_EXTERNAL_RELATIONSHIP
+		    "SPDXRef-${_sbom_project} DEPENDS_ON ${SBOM_EXTERNAL_SPDXID}:${SBOM_EXTERNAL_EXTERNAL}"
+		)
+	else()
+		string(REPLACE "@SBOM_LAST_SPDXID@" "${SBOM_EXTERNAL_SPDXID}"
+			       SBOM_EXTERNAL_RELATIONSHIP "${SBOM_EXTERNAL_RELATIONSHIP}"
+		)
+	endif()
+
+	# Filename may not exist yet, and it could be a generator expression.
+	file(
+		GENERATE
+		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_EXTERNAL_SPDXID}.cmake
+		CONTENT
+			"
+			file(SHA1 \"${SBOM_EXTERNAL_FILENAME}\" ext_sha1)
+			file(READ \"${SBOM_EXTERNAL_FILENAME}\" ext_content)
+			if(\"${SBOM_EXTERNAL_RENAME}\" STREQUAL \"\")
+				get_filename_component(ext_name \"${SBOM_EXTERNAL_FILENAME}\" NAME_WE)
+				file(WRITE \"${sbom_dir}/\${ext_name}\" \"\${ext_content}\")
+			else()
+				file(WRITE \"${sbom_dir}/${SBOM_EXTERNAL_RENAME}\" \"\${ext_content}\")
+			endif()
+
+			if(NOT \"\${ext_content}\" MATCHES \"[\\r\\n]DocumentNamespace:\")
+				message(FATAL_ERROR \"Missing DocumentNamespace in ${SBOM_EXTERNAL_FILENAME}\")
+			endif()
+
+			string(REGEX REPLACE \"^.*[\\r\\n]DocumentNamespace:[ \\t]*([^#\\r\\n]*).*$\"
+				\"\\\\1\" ext_ns \"\${ext_content}\")
+
+			list(APPEND SBOM_EXT_DOCS \"
+ExternalDocumentRef: ${SBOM_EXTERNAL_SPDXID} \${ext_ns} SHA1: \${ext_sha1}\")
+
+			file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
+\"
+Relationship: ${SBOM_EXTERNAL_RELATIONSHIP}\")
+		"
+	)
+
+	file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
+	     "install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_EXTERNAL_SPDXID}.cmake)
+"
+	)
+
+endfunction()
+
 # Append something to the SBOM. Use this after calling sbom_generate().
-#
-# Usage: sbom_add(FILENAME|DIRECTORY|TARGET|PACKAGE...)
-#
-# This is a wrapper function. See separate sbom_... for more details.
 function(sbom_add type)
 	if("${type}" STREQUAL "FILENAME")
 		sbom_file(${ARGV})
@@ -619,6 +713,8 @@ function(sbom_add type)
 		sbom_target(${ARGV})
 	elseif("${type}" STREQUAL "PACKAGE")
 		sbom_package(${ARGV})
+	elseif("${type}" STREQUAL "EXTERNAL")
+		sbom_external(${ARGV})
 	else()
 		message(FATAL_ERROR "Unsupported sbom_add(${type})")
 	endif()

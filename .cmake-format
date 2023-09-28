@@ -38,6 +38,13 @@ parse:
         RELATIONSHIP: 1
         SPDXID: 1
         SUPPLIER: 1
+    sbom_external:
+      kwargs:
+        EXTERNAL: 1
+        FILENAME: 1
+        RENAME: 1
+        RELATIONSHIP: 1
+        SPDXID: 1
     sbom_add:
       kwargs:
         FILENAME: 1
@@ -50,6 +57,8 @@ parse:
         VERSION: 1
         LICENSE: 1
         DOWNLOAD_LOCATION: 1
+        EXTERNAL: 1
+        RENAME: 1
 
 format:
   line_width: 100

@@ -290,6 +290,34 @@ Add something to the SBOM.
 ``VERSION``
    Version of the package.
 
+.. code:: cmake
+
+   sbom_add(
+      EXTERNAL <id>
+      FILENAME <path>
+      [RENAME <filename>]
+      [RELATIONSHIP <string>]
+      [SPDXID <id>]
+   )
+
+``EXTERNAL``
+   The SDPX identifier of a package in an external file.
+
+``FILENAME``
+   Reference to another SDPX file as External document reference.
+   Then, depend on the package named in that document.
+   The external SDPX file is copied next to the SBOM.
+   Generator expressions are supported.
+
+``RENAME``
+   Rename the external document to the given filename, without directories.
+
+``SPDXID``
+   The identifier of the external document, which is used as prefix for the package identifier.
+   Defaults to a unique identifier.
+   The package identifier is added automatically.
+   The variable ``SBOM_LAST_SPDXID`` is set to the used identifier.
+
 ``sbom_finalize``
 `````````````````
 
