@@ -1,0 +1,59 @@
+SPDXVersion: SPDX-2.3
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: sbom-1
+DocumentNamespace: https://demcon.com/spdxdocs/example-project-1.0.0
+Creator: Organization: Demcon
+Creator: Tool: cmake-sbom
+CreatorComment: <text>This SPDX document was created from CMake 3.22.1, using cmake-sbom
+from https://github.com/DEMCON/cmake-sbom</text>
+Created: 2023-09-28T07:15:24Z
+
+PackageName: GNU
+SPDXID: SPDXRef-compiler
+PackageVersion: 11.4.0
+PackageDownloadLocation: NOASSERTION
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+PackageSupplier: Organization: Anonymous
+FilesAnalyzed: false
+PackageSummary: <text>The compiler as identified by CMake, running on Linux (x86_64)</text>
+PrimaryPackagePurpose: APPLICATION
+Relationship: SPDXRef-compiler CONTAINS NOASSERTION
+Relationship: SPDXRef-compiler BUILD_DEPENDENCY_OF SPDXRef-example-project
+RelationshipComment: <text>SPDXRef-example-project is built by compiler GNU (/usr/bin/c++) version 11.4.0</text>
+
+PackageName: example-project
+SPDXID: SPDXRef-example-project
+ExternalRef: SECURITY cpe23Type cpe:2.3:o:canonical:ubuntu_linux:-:*:*:*:*:*:x86_64:*
+ExternalRef: PACKAGE-MANAGER purl pkg:supplier/Demcon/example-project@1.0.0
+PackageVersion: 1.0.0
+PackageSupplier: Organization: Demcon
+PackageDownloadLocation: NOASSERTION
+PackageLicenseConcluded: CC0-1.0
+PackageLicenseDeclared: CC0-1.0
+PackageCopyrightText: 2023 Demcon
+PackageHomePage: https://demcon.com
+PackageComment: <text>Built by CMake 3.22.1 with Debug configuration for Linux (x86_64)</text>
+PackageVerificationCode: 669459011fa5d728becf992cd2ecdbac107f4cd5
+BuiltDate: 2023-09-28T07:15:24Z
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-example-project
+
+FileName: ./bin/example
+SPDXID: SPDXRef-bin-TARGET-FILE-NAME-example-0
+FileType: BINARY
+FileChecksum: SHA1: 472f00843563b92f66f72365dbd2ab089bb28ca9
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: NOASSERTION
+FileCopyrightText: NOASSERTION
+Relationship: SPDXRef-example-project CONTAINS SPDXRef-bin-TARGET-FILE-NAME-example-0
+
+FileName: ./share/example/version.txt
+SPDXID: SPDXRef-share-example-version-txt-1
+FileType: DOCUMENTATION
+FileChecksum: SHA1: 91e95be6b6634e3c21072dfcd661146728694326
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: NOASSERTION
+FileCopyrightText: NOASSERTION
+Relationship: SPDXRef-example-project CONTAINS SPDXRef-share-example-version-txt-1

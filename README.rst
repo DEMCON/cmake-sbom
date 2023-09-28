@@ -8,14 +8,25 @@
 CMake SBOM generation
 =====================
 
-This project provides a CMake module that helps generating an SBOM in `SPDX`_ for an arbitrary project.
+This project provides a CMake module that helps generating (*Produce (Build)*) an `NTIA`_-compliant Software Bill of Materials (SBOM) in `SPDX`_ for an arbitrary CMake project.
 
 It automates two tasks:
 
-- extracting version information from Git, and pass it to CMake, shell scripts and C/C++; and
-- generate a SBOM in SPDX format, based on install artifacts.
+- `extracting version information <version>`_ from Git, and pass it to CMake, shell scripts and C/C++; and
+- `generate a SBOM <sbom>`_ in SPDX format, based on install artifacts.
+
+The version extraction helps to get the version in the application and SBOM right.
+The SBOM contains the files you mention explicitly, just like you mention what to ``install()`` in CMake.
+
+See the `example`_.
 
 .. _SPDX: https://spdx.github.io/spdx-spec/v2.3/
+.. _NTIA: http://ntia.gov/SBOM
+.. _example: https://github.com/DEMCON/cmake-sbom/tree/main/example
+
+
+
+.. _version:
 
 Version extraction
 ------------------
@@ -71,6 +82,10 @@ Additionally, it creates:
 ``${PROJECT_NAME}-version`` static library target
    When linking to this target, one can access the version information in C/C++ by including the ``<${PROJECT_NAME}-version.h>`` header file.
    The file is generated in ``${PROJECT_BINARY_DIR}/include``.
+
+
+
+.. _sbom:
 
 SBOM generation
 ---------------

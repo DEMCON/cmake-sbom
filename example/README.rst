@@ -20,3 +20,7 @@ To build the example, run something like:
    cmake --build . --target install
 
 The project installs the build artifacts in ``build/deploy``, including the ``example`` application, a text file with the version, and the SBOM.
+
+An example of the generated output is available in `output`_.
+
+.. _output: https://github.com/DEMCON/cmake-sbom/tree/main/example/output
