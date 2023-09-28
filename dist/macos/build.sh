@@ -1,0 +1,1 @@
+../ubuntu/build.sh
