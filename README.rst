@@ -12,8 +12,8 @@ This project provides a CMake module that helps generating (*Produce (Build)*) a
 
 It automates two tasks:
 
-- `extracting version information <version>`_ from Git, and pass it to CMake, shell scripts and C/C++; and
-- `generate a SBOM <sbom>`_ in SPDX format, based on install artifacts.
+- :ref:`extracting version information<version>` from Git, and pass it to CMake, shell scripts and C/C++; and
+- :ref:`generate a SBOM<sbom>` in SPDX format, based on install artifacts.
 
 The version extraction helps to get the version in the application and SBOM right.
 The SBOM contains the files you mention explicitly, just like you mention what to ``install()`` in CMake.
@@ -24,6 +24,7 @@ See the `example`_.
 .. _NTIA: http://ntia.gov/SBOM
 .. _example: https://github.com/DEMCON/cmake-sbom/tree/main/example
 
+.. contents::
 
 
 .. _version:
