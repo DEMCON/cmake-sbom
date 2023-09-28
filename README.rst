@@ -24,6 +24,8 @@ See the `example`_.
 .. _NTIA: http://ntia.gov/SBOM
 .. _example: https://github.com/DEMCON/cmake-sbom/tree/main/example
 
+**Contents**
+
 .. contents:: :local:
 
 
