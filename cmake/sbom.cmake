@@ -65,6 +65,9 @@ function(sbom_spdxid)
 	cmake_parse_arguments(
 		SBOM_SPDXID "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
 	)
+	if(SBOM_SPDXID_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_SPDXID_UNPARSED_ARGUMENTS}")
+	endif()
 
 	if("${SBOM_SPDXID_VARIABLE}" STREQUAL "")
 		message(FATAL_ERROR "Missing VARIABLE")
@@ -115,6 +118,9 @@ function(sbom_generate)
 	cmake_parse_arguments(
 		SBOM_GENERATE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
 	)
+	if(SBOM_GENERATE_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_GENERATE_UNPARSED_ARGUMENTS}")
+	endif()
 
 	string(TIMESTAMP NOW_UTC UTC)
 
@@ -147,10 +153,6 @@ function(sbom_generate)
 		set(SBOM_GENERATE_COPYRIGHT "${NOW_YEAR} ${SBOM_GENERATE_SUPPLIER}")
 	endif()
 
-	if("${SBOM_GENERATE_SUPPLIER}" STREQUAL "")
-		message(FATAL_ERROR "Specify a SUPPLIER, or set SBOM_SUPPLIER")
-	endif()
-
 	if("${SBOM_GENERATE_SUPPLIER_URL}" STREQUAL "")
 		set(SBOM_GENERATE_SUPPLIER_URL "${SBOM_SUPPLIER_URL}")
 	elseif("${SBOM_SUPPLIER_URL}" STREQUAL "")
@@ -158,10 +160,6 @@ function(sbom_generate)
 		    "${SBOM_GENERATE_SUPPLIER_URL}"
 		    CACHE STRING "SBOM supplier URL"
 		)
-	endif()
-
-	if("${SBOM_GENERATE_SUPPLIER_URL}" STREQUAL "")
-		message(FATAL_ERROR "Specify a SUPPLIER_URL, or set SBOM_SUPPLIER_URL")
 	endif()
 
 	if("${SBOM_GENERATE_NAMESPACE}" STREQUAL "")
@@ -183,6 +181,14 @@ function(sbom_generate)
 	file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/sbom)
 
 	if("${SBOM_GENERATE_INPUT}" STREQUAL "")
+		if("${SBOM_GENERATE_SUPPLIER}" STREQUAL "")
+			message(FATAL_ERROR "Specify a SUPPLIER, or set SBOM_SUPPLIER")
+		endif()
+
+		if("${SBOM_GENERATE_SUPPLIER_URL}" STREQUAL "")
+			message(FATAL_ERROR "Specify a SUPPLIER_URL, or set SBOM_SUPPLIER_URL")
+		endif()
+
 		set(_f "${CMAKE_CURRENT_BINARY_DIR}/SPDXRef-DOCUMENT.spdx.in")
 
 		get_filename_component(doc_name "${SBOM_GENERATE_OUTPUT}" NAME_WE)
@@ -331,6 +337,9 @@ function(sbom_file)
 	set(oneValueArgs FILENAME FILETYPE RELATIONSHIP SPDXID)
 	set(multiValueArgs)
 	cmake_parse_arguments(SBOM_FILE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+	if(SBOM_FILE_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_FILE_UNPARSED_ARGUMENTS}")
+	endif()
 
 	if("${SBOM_FILE_FILENAME}" STREQUAL "")
 		message(FATAL_ERROR "Missing FILENAME argument")
@@ -410,6 +419,9 @@ function(sbom_target)
 	cmake_parse_arguments(
 		SBOM_TARGET "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
 	)
+	if(SBOM_TARGET_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_TARGET_UNPARSED_ARGUMENTS}")
+	endif()
 
 	if("${SBOM_TARGET_TARGET}" STREQUAL "")
 		message(FATAL_ERROR "Missing TARGET argument")
@@ -438,6 +450,9 @@ function(sbom_directory)
 	cmake_parse_arguments(
 		SBOM_DIRECTORY "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
 	)
+	if(SBOM_DIRECTORY_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_DIRECTORY_UNPARSED_ARGUMENTS}")
+	endif()
 
 	if("${SBOM_DIRECTORY_DIRECTORY}" STREQUAL "")
 		message(FATAL_ERROR "Missing DIRECTORY argument")
@@ -523,6 +538,9 @@ function(sbom_package)
 	cmake_parse_arguments(
 		SBOM_PACKAGE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
 	)
+	if(SBOM_PACKAGE_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_PACKAGE_UNPARSED_ARGUMENTS}")
+	endif()
 
 	if("${SBOM_PACKAGE_PACKAGE}" STREQUAL "")
 		message(FATAL_ERROR "Missing PACKAGE")
@@ -622,6 +640,9 @@ function(sbom_external)
 	cmake_parse_arguments(
 		SBOM_EXTERNAL "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
 	)
+	if(SBOM_EXTERNAL_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_EXTERNAL_UNPARSED_ARGUMENTS}")
+	endif()
 
 	if("${SBOM_EXTERNAL_EXTERNAL}" STREQUAL "")
 		message(FATAL_ERROR "Missing EXTERNAL")

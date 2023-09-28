@@ -147,6 +147,7 @@ Generate the header of the SBOM, based on a standard template where the given de
    
    sbom_generate(
       [OUTPUT <filename>]
+      [INPUT <filename>...]
       [COPYRIGHT <string>]
       [LICENSE <string>]
       [NAMESPACE <URI>]
@@ -158,6 +159,13 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``OUTPUT``
    Output filename.
    It should probably start with ``${CMAKE_INSTALL_PREFIX}``, as the file is generated during ``install``.
+
+``INPUT``
+   One or more file names, which are concatenated into the SBOM output file.
+   Variables and generator expressions are supported in these files.
+   Variables in the form ``@var@`` are replaced during config, ``${var}`` during install.
+   When omitted, a standard document/package SBOM is generated.
+   The other parameters can be referenced in the input files, prefixed with ``SBOM_GENERATE_``.
 
 ``COPYRIGHT``
    Copyright information.
@@ -177,24 +185,11 @@ Generate the header of the SBOM, based on a standard template where the given de
 
 ``SUPPLIER``
    Supplier name.
-   It may be omitted when the variable ``SBOM_SUPPLIER`` is set.
+   It may be omitted when the variable ``SBOM_SUPPLIER`` is set or when any ``INPUT`` is given.
 
 ``SUPPLIER_URL``
    Supplier home page.
-   It may be omitted when the variable ``SBOM_SUPPLIER_URL`` is set.
-
-Alternatively, you can specify your own template.
-
-.. code:: cmake
-   
-   sbom_generate(
-      [OUTPUT <filename>]
-      INPUT <filename>...
-   )
-
-``INPUT``
-   One or more file names, which are concatenated into the SBOM output file.
-   Variables and generator expressions are supported in these files.
+   It may be omitted when the variable ``SBOM_SUPPLIER_URL`` is set or when any ``INPUT`` is given.
 
 ``sbom_add``
 ````````````
