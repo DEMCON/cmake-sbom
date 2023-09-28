@@ -15,3 +15,4 @@ include(sbom)
 reuse_lint()
 
 add_subdirectory(example)
+add_subdirectory(test)

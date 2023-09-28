@@ -244,10 +244,7 @@ function(version_generate)
 	file(WRITE ${PROJECT_BINARY_DIR}/version.txt "${GIT_VERSION}")
 
 	if(NOT TARGET ${PROJECT_NAME}-version)
-		add_library(
-			${PROJECT_NAME}-version STATIC
-			"${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}_version.h"
-		)
+		add_library(${PROJECT_NAME}-version INTERFACE)
 
 		set_target_properties(
 			${PROJECT_NAME}-version
@@ -258,8 +255,8 @@ function(version_generate)
 
 		target_include_directories(
 			${PROJECT_NAME}-version
-			PUBLIC "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
-			       "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+			INTERFACE "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
+				  "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 		)
 	endif()
 endfunction()

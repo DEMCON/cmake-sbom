@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2023 Jochem Rutgers
+#
+# SPDX-License-Identifier: CC0-1.0
+
+SPDXVersion: SPDX-2.3
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: @PROJECT_NAME@
+DocumentNamespace: https://test.com/spdxdoc/@PROJECT_NAME@
+Creator: Organization: Demcon
+Creator: Tool: cmake-sbom
+Created: @NOW_UTC@
+
+PackageName: @PROJECT_NAME@
+SPDXID: SPDXRef-package
+PackageVersion: 1
+PackageSupplier: Organization: Demcon
+PackageDownloadLocation: NOASSERTION
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: @SBOM_GENERATE_COPYRIGHT@
+PackageHomePage: https://demcon.com
+BuiltDate: @NOW_UTC@
+PackageVerificationCode: ${SBOM_VERIFICATION_CODE}
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-package
