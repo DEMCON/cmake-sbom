@@ -33,6 +33,7 @@ project(${name})"
 			"-DCMAKE_INSTALL_PREFIX=${_dir}/out"
 			"-DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/cmake"
 			"-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
+			"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
 		COMMAND ${CMAKE_COMMAND} --build . --target install
 		WORKING_DIRECTORY "${_dir}/build"
 		COMMENT "Testing ${name}"
