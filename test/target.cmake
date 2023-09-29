@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2023 Jochem Rutgers
+#
+# SPDX-License-Identifier: MIT
+
+@TEST_PREAMBLE@
+
+include(sbom)
+
+sbom_generate(SUPPLIER Demcon SUPPLIER_URL https://demcon.com)
+
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/foo.c "int main() {}")
+
+add_executable(foo ${CMAKE_CURRENT_BINARY_DIR}/foo.c)
+install(TARGETS foo)
+sbom_add(TARGET foo)
+
+add_library(libfoo STATIC ${CMAKE_CURRENT_BINARY_DIR}/foo.c)
+install(TARGETS libfoo)
+sbom_add(TARGET libfoo)
+
+add_library(libfoo2 SHARED ${CMAKE_CURRENT_BINARY_DIR}/foo.c)
+install(TARGETS libfoo2)
+sbom_add(TARGET libfoo2)
+
+# Headers are not included. You may want to add sbom_add(DIRECTORY include FILETYPE SOURCE).
+
+sbom_finalize()

@@ -9,12 +9,6 @@ endif()
 include(GNUInstallDirs)
 include(${CMAKE_CURRENT_LIST_DIR}/version.cmake)
 
-find_package(
-	Python3
-	COMPONENTS Interpreter
-	REQUIRED
-)
-
 # Common Platform Enumeration: https://nvd.nist.gov/products/cpe
 #
 # TODO: This detection can be improved.
@@ -155,6 +149,9 @@ function(sbom_generate)
 
 	if("${SBOM_GENERATE_SUPPLIER_URL}" STREQUAL "")
 		set(SBOM_GENERATE_SUPPLIER_URL "${SBOM_SUPPLIER_URL}")
+		if("${SBOM_GENERATE_SUPPLIER_URL}" STREQUAL "")
+			set(SBOM_GENERATE_SUPPLIER_URL "${PROJECT_HOMEPAGE_URL}")
+		endif()
 	elseif("${SBOM_SUPPLIER_URL}" STREQUAL "")
 		set(SBOM_SUPPLIER_URL
 		    "${SBOM_GENERATE_SUPPLIER_URL}"
@@ -278,21 +275,87 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 
 	install(CODE "set(SBOM_VERIFICATION_CODES)")
 
-	set_property(GLOBAL PROPERTY sbom_filename "${SBOM_GENERATE_OUTPUT}")
+	set_property(GLOBAL PROPERTY SBOM_FILENAME "${SBOM_GENERATE_OUTPUT}")
+	set(SBOM_FILENAME
+	    "${SBOM_GENERATE_OUTPUT}"
+	    PARENT_SCOPE
+	)
 	set_property(GLOBAL PROPERTY sbom_project "${SBOM_GENERATE_PROJECT}")
 	set_property(GLOBAL PROPERTY sbom_spdxids 0)
 
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
 endfunction()
 
-# Verify the generated SBOM. Call after sbom_generate() and other SBOM populating commands.
+# Find python.
 #
-# Usage: sbom_finalize()
+# Usage sbom_find_python([REQUIRED])
+macro(sbom_find_python)
+	if(Python3_EXECUTABLE)
+		set(Python3_FOUND TRUE)
+	elseif(CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
+		find_package(Python3 COMPONENTS Interpreter ${ARGV})
+	else()
+		if(WIN32)
+			find_program(Python3_EXECUTABLE NAMES python ${ARGV})
+		else()
+			find_program(Python3_EXECUTABLE NAMES python3 ${ARGV})
+		endif()
+
+		if(Python3_EXECUTABLE)
+			set(Python3_FOUND TRUE)
+		else()
+			set(Python3_FOUND FALSE)
+		endif()
+	endif()
+
+	if(Python3_FOUND)
+		if(NOT DEFINED SBOM_HAVE_PYTHON_DEPS)
+			execute_process(
+				COMMAND
+					${Python3_EXECUTABLE} -c "
+import reuse
+import spdx_tools.spdx.clitools.pyspdxtools
+import ntia_conformance_checker.main
+"
+				RESULT_VARIABLE _res
+				ERROR_QUIET OUTPUT_QUIET
+			)
+
+			if("${_res}" STREQUAL "0")
+				set(SBOM_HAVE_PYTHON_DEPS
+				    TRUE
+				    CACHE INTERNAL ""
+				)
+			else()
+				set(SBOM_HAVE_PYTHON_DEPS
+				    FALSE
+				    CACHE INTERNAL ""
+				)
+			endif()
+		endif()
+
+		if("${ARGN}" STREQUAL "REQUIRED" AND NOT SBOM_HAVE_PYTHON_DEPS)
+			message(FATAL_ERROR "Missing python packages")
+		endif()
+	endif()
+endmacro()
+
+# Verify the generated SBOM. Call after sbom_generate() and other SBOM populating commands.
 function(sbom_finalize)
-	get_property(_sbom GLOBAL PROPERTY sbom_filename)
+	set(options NO_VERIFY VERIFY)
+	set(oneValueArgs GRAPH)
+	set(multiValueArgs)
+	cmake_parse_arguments(
+		SBOM_FINALIZE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+	)
+	if(SBOM_FINALIZE_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_FINALIZE_UNPARSED_ARGUMENTS}")
+	endif()
+
+	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
-	if("${_sbom}" STREQUAL "")
+	if("${_sbom_project}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
@@ -305,18 +368,60 @@ function(sbom_finalize)
 		file(WRITE \"${PROJECT_BINARY_DIR}/sbom/verification.txt\" \"\${SBOM_VERIFICATION_CODES}\")
 		file(SHA1 \"${PROJECT_BINARY_DIR}/sbom/verification.txt\" SBOM_VERIFICATION_CODE)
 		configure_file(\"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"${_sbom}\")
-
-		message(STATUS \"Verifying: ${_sbom}\")
-		execute_process(
-			COMMAND ${Python3_EXECUTABLE} -m spdx_tools.spdx.clitools.pyspdxtools
-			-i \"${_sbom}\"
-			RESULT_VARIABLE _res
-		)
-		if(NOT _res EQUAL 0)
-			message(FATAL_ERROR \"SBOM verification failed\")
-		endif()
 		"
 	)
+
+	if(NOT "${SBOM_FINALIZE_GRAPH}" STREQUAL "")
+		set(SBOM_FINALIZE_NO_VERIFY FALSE)
+		set(SBOM_FINALIZE_VERIFY TRUE)
+		set(_graph --graph --outfile "${SBOM_FINALIZE_GRAPH}")
+	else()
+		set(_graph)
+	endif()
+
+	if(SBOM_FINALIZE_NO_VERIFY)
+		set(SBOM_FINALIZE_VERIFY FALSE)
+	else()
+		if(SBOM_FINALIZE_VERIFY)
+			# Force verify.
+			set(_req REQUIRED)
+		else()
+			# Check if we can verify.
+			set(_req)
+		endif()
+
+		sbom_find_python(${_req})
+
+		if(Python3_FOUND)
+			set(SBOM_FINALIZE_VERIFY TRUE)
+		endif()
+	endif()
+
+	if(SBOM_FINALIZE_VERIFY)
+		file(
+			APPEND ${PROJECT_BINARY_DIR}/sbom/verify.cmake
+			"
+			message(STATUS \"Verifying: ${_sbom}\")
+			execute_process(
+				COMMAND ${Python3_EXECUTABLE} -m spdx_tools.spdx.clitools.pyspdxtools
+				-i \"${_sbom}\" ${_graph}
+				RESULT_VARIABLE _res
+			)
+			if(NOT _res EQUAL 0)
+				message(FATAL_ERROR \"SBOM verification failed\")
+			endif()
+
+			execute_process(
+				COMMAND ${Python3_EXECUTABLE} -m ntia_conformance_checker.main
+				--file \"${_sbom}\"
+				RESULT_VARIABLE _res
+			)
+			if(NOT _res EQUAL 0)
+				message(FATAL_ERROR \"SBOM NTIA verification failed\")
+			endif()
+			"
+		)
+	endif()
 
 	file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT verify.cmake)
 "
@@ -324,14 +429,16 @@ function(sbom_finalize)
 
 	# Workaround for pre-CMP0082.
 	add_subdirectory(${PROJECT_BINARY_DIR}/sbom ${PROJECT_BINARY_DIR}/sbom)
+
+	# Mark finalized.
+	set(SBOM_FILENAME
+	    "${_sbom}"
+	    PARENT_SCOPE
+	)
+	set_property(GLOBAL PROPERTY sbom_project "")
 endfunction()
 
 # Append a file to the SBOM. Use this after calling sbom_generate().
-#
-# Usage: sbom_file(FILENAME <filename> FILETYPE <type> [RELATIONSHIP <string>] [SPDXID <hint>]
-# [OPTIONAL])
-#
-# The FILENAME must be relative to CMAKE_INSTALL_PREFIX. Generator expressions are supported.
 function(sbom_file)
 	set(options OPTIONAL)
 	set(oneValueArgs FILENAME FILETYPE RELATIONSHIP SPDXID)
@@ -359,7 +466,7 @@ function(sbom_file)
 		message(FATAL_ERROR "Missing FILETYPE argument")
 	endif()
 
-	get_property(_sbom GLOBAL PROPERTY sbom_filename)
+	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
 	if("${SBOM_FILE_RELATIONSHIP}" STREQUAL "")
@@ -370,7 +477,7 @@ function(sbom_file)
 		)
 	endif()
 
-	if("${_sbom}" STREQUAL "")
+	if("${_sbom_project}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
@@ -408,10 +515,6 @@ Relationship: ${SBOM_FILE_RELATIONSHIP}
 endfunction()
 
 # Append a target output to the SBOM. Use this after calling sbom_generate().
-#
-# Usage: sbom_target(TARGET <target> [RELATIONSHIP <string>] [SPDXID <hint>])
-#
-# The target must be installed in the default location, according to GNUInstallDirs.
 function(sbom_target)
 	set(options)
 	set(oneValueArgs TARGET)
@@ -419,9 +522,6 @@ function(sbom_target)
 	cmake_parse_arguments(
 		SBOM_TARGET "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
 	)
-	if(SBOM_TARGET_UNPARSED_ARGUMENTS)
-		message(FATAL_ERROR "Unknown arguments: ${SBOM_TARGET_UNPARSED_ARGUMENTS}")
-	endif()
 
 	if("${SBOM_TARGET_TARGET}" STREQUAL "")
 		message(FATAL_ERROR "Missing TARGET argument")
@@ -432,6 +532,29 @@ function(sbom_target)
 		sbom_file(FILENAME ${CMAKE_INSTALL_BINDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
 			  FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
 		)
+	elseif("${_type}" STREQUAL "STATIC_LIBRARY")
+		sbom_file(FILENAME ${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
+			  FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
+		)
+	elseif("${_type}" STREQUAL "SHARED_LIBRARY")
+		if(WIN32)
+			sbom_file(
+				FILENAME
+					${CMAKE_INSTALL_BINDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
+				FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
+			)
+			sbom_file(
+				FILENAME
+					${CMAKE_INSTALL_LIBDIR}/$<TARGET_LINKER_FILE:${SBOM_TARGET_TARGET}>
+				FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
+			)
+		else()
+			sbom_file(
+				FILENAME
+					${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
+				FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
+			)
+		endif()
 	else()
 		message(FATAL_ERROR "Unsupported target type ${_type}")
 	endif()
@@ -466,7 +589,7 @@ function(sbom_directory)
 		message(FATAL_ERROR "Missing FILETYPE argument")
 	endif()
 
-	get_property(_sbom GLOBAL PROPERTY sbom_filename)
+	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
 	if("${SBOM_DIRECTORY_RELATIONSHIP}" STREQUAL "")
@@ -479,7 +602,7 @@ function(sbom_directory)
 		)
 	endif()
 
-	if("${_sbom}" STREQUAL "")
+	if("${_sbom_project}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
@@ -547,7 +670,7 @@ function(sbom_package)
 	endif()
 
 	if("${SBOM_PACKAGE_DOWNLOAD_LOCATION}" STREQUAL "")
-		message(FATAL_ERROR "Missing DOWNLOAD_LOCATION")
+		set(SBOM_PACKAGE_DOWNLOAD_LOCATION NOASSERTION)
 	endif()
 
 	sbom_spdxid(
@@ -586,7 +709,7 @@ ExternalRef: ${_ref}"
 		)
 	endforeach()
 
-	get_property(_sbom GLOBAL PROPERTY sbom_filename)
+	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
 	if("${SBOM_PACKAGE_RELATIONSHIP}" STREQUAL "")
@@ -599,7 +722,7 @@ ExternalRef: ${_ref}"
 		)
 	endif()
 
-	if("${_sbom}" STREQUAL "")
+	if("${_sbom_project}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
@@ -668,13 +791,14 @@ function(sbom_external)
 	    PARENT_SCOPE
 	)
 
-	get_property(_sbom GLOBAL PROPERTY sbom_filename)
-	if("${_sbom}" STREQUAL "")
+	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
+	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
+
+	if("${_sbom_project}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
 	get_filename_component(sbom_dir "${_sbom}" DIRECTORY)
-	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
 	if("${SBOM_EXTERNAL_RELATIONSHIP}" STREQUAL "")
 		set(SBOM_EXTERNAL_RELATIONSHIP
@@ -695,7 +819,7 @@ function(sbom_external)
 			file(SHA1 \"${SBOM_EXTERNAL_FILENAME}\" ext_sha1)
 			file(READ \"${SBOM_EXTERNAL_FILENAME}\" ext_content)
 			if(\"${SBOM_EXTERNAL_RENAME}\" STREQUAL \"\")
-				get_filename_component(ext_name \"${SBOM_EXTERNAL_FILENAME}\" NAME_WE)
+				get_filename_component(ext_name \"${SBOM_EXTERNAL_FILENAME}\" NAME)
 				file(WRITE \"${sbom_dir}/\${ext_name}\" \"\${ext_content}\")
 			else()
 				file(WRITE \"${sbom_dir}/${SBOM_EXTERNAL_RENAME}\" \"\${ext_content}\")
@@ -750,11 +874,7 @@ endfunction()
 # installed (see dist/common/requirements.txt).
 function(reuse_lint)
 	if(NOT TARGET ${PROJECT_NAME}-reuse-lint)
-		find_package(
-			Python3
-			COMPONENTS Interpreter
-			REQUIRED
-		)
+		sbom_find_python(REQUIRED)
 
 		add_custom_target(
 			${PROJECT_NAME}-reuse-lint ALL
@@ -769,11 +889,7 @@ endfunction()
 # packages installed (see dist/common/requirements.txt).
 function(reuse_spdx)
 	if(NOT TARGET ${PROJECT_NAME}-reuse-spdx)
-		find_package(
-			Python3
-			COMPONENTS Interpreter
-			REQUIRED
-		)
+		sbom_find_python(REQUIRED)
 
 		set(outfile "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-src.spdx")
 

@@ -12,7 +12,11 @@ parse:
     sbom_generate:
       kwargs:
         OUTPUT: 1
+        INPUT: '*'
+        COPYRIGHT: 1
         LICENSE: 1
+        NAMESPACE: 1
+        PROJECT: 1
         SUPPLIER: 1
         SUPPLIER_URL: 1
     sbom_file:
@@ -59,6 +63,7 @@ parse:
         DOWNLOAD_LOCATION: 1
         EXTERNAL: 1
         RENAME: 1
+        SUPPLIER: 1
 
 format:
   line_width: 100
