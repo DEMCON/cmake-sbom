@@ -57,7 +57,7 @@ jobs:
 
   # Dummy job to check if build-all-check was successful.
   build-all:
-    needs: [build-ubuntu, build-all-check]
+    needs: [build-ubuntu, build-macos, build-windows, build-all-check]
     runs-on: ubuntu-latest
     if: always()
     steps:
