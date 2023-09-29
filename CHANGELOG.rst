@@ -25,7 +25,24 @@ Added
 
 ...
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.0.0...HEAD
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.1.0...HEAD
+
+
+
+`1.1.0`_ - 2023-09-29
+---------------------
+
+Misc improvements.
+
+Added
+`````
+
+- NTIA checks.
+- External document references.
+- Handling library TARGETs.
+- Tests.
+
+.. _1.1.0: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.1.0
 
 
 
