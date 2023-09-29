@@ -347,6 +347,14 @@ Finalize the SBOM and verify its contents and/or format.
 
 
 
+Testing
+-------
+
+For testing purposes, go to ``dist/<your_platform>``, run ``bootstrap`` to install system dependencies, and then run ``build`` to build the example and all tests.
+This is not required when integrating this repository in your build.
+
+
+
 License
 -------
 
