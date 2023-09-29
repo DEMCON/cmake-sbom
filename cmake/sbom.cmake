@@ -53,7 +53,7 @@ endif()
 # Sets the given variable to a unique SPDIXID-compatible value.
 function(sbom_spdxid)
 	set(options)
-	set(oneValueArgs VARIABLE)
+	set(oneValueArgs VARIABLE CHECK)
 	set(multiValueArgs HINTS)
 
 	cmake_parse_arguments(
@@ -67,22 +67,26 @@ function(sbom_spdxid)
 		message(FATAL_ERROR "Missing VARIABLE")
 	endif()
 
-	get_property(_spdxids GLOBAL PROPERTY sbom_spdxids)
-	set(_suffix "-${_spdxids}")
-	math(EXPR _spdxids "${_spdxids} + 1")
-	set_property(GLOBAL PROPERTY sbom_spdxids "${_spdxids}")
+	if("${SBOM_SPDXID_CHECK}" STREQUAL "")
+		get_property(_spdxids GLOBAL PROPERTY sbom_spdxids)
+		set(_suffix "-${_spdxids}")
+		math(EXPR _spdxids "${_spdxids} + 1")
+		set_property(GLOBAL PROPERTY sbom_spdxids "${_spdxids}")
 
-	foreach(_hint IN LISTS SBOM_SPDXID_HINTS)
-		string(REGEX REPLACE "[^a-zA-Z0-9]+" "-" _id "${_hint}")
-		string(REGEX REPLACE "-+$" "" _id "${_id}")
-		if(NOT "${_id}" STREQUAL "")
-			set(_id "${_id}${_suffix}")
-			break()
+		foreach(_hint IN LISTS SBOM_SPDXID_HINTS)
+			string(REGEX REPLACE "[^a-zA-Z0-9]+" "-" _id "${_hint}")
+			string(REGEX REPLACE "-+$" "" _id "${_id}")
+			if(NOT "${_id}" STREQUAL "")
+				set(_id "${_id}${_suffix}")
+				break()
+			endif()
+		endforeach()
+
+		if("${_id}" STREQUAL "")
+			set(_id "SPDXRef${_suffix}")
 		endif()
-	endforeach()
-
-	if("${_id}" STREQUAL "")
-		set(_id "SPDXRef${_suffix}")
+	else()
+		set(_id "${SBOM_SPDXID_CHECK}")
 	endif()
 
 	if(NOT "${_id}" MATCHES "^SPDXRef-[-a-zA-Z0-9]+$")
@@ -453,8 +457,9 @@ function(sbom_file)
 	endif()
 
 	sbom_spdxid(
-		VARIABLE SBOM_FILE_SPDXID HINTS "${SBOM_FILE_SPDXID}"
-						"SPDXRef-${SBOM_FILE_FILENAME}"
+		VARIABLE SBOM_FILE_SPDXID
+		CHECK "${SBOM_FILE_SPDXID}"
+		HINTS "SPDXRef-${SBOM_FILE_FILENAME}"
 	)
 
 	set(SBOM_LAST_SPDXID
@@ -674,8 +679,9 @@ function(sbom_package)
 	endif()
 
 	sbom_spdxid(
-		VARIABLE SBOM_PACKAGE_SPDXID HINTS "${SBOM_PACKAGE_SPDXID}"
-						   "SPDXRef-${SBOM_PACKAGE_PACKAGE}"
+		VARIABLE SBOM_PACKAGE_SPDXID
+		CHECK "${SBOM_PACKAGE_SPDXID}"
+		HINTS "SPDXRef-${SBOM_PACKAGE_PACKAGE}"
 	)
 
 	set(SBOM_LAST_SPDXID

@@ -127,11 +127,14 @@ Generate a unique SPDX identifier.
    
    sbom_spdxid(
       VARIABLE <variable_name>
-      [HINTS <hint>...]
+      [CHECK <id> | HINTS <hint>...]
    )
 
 ``VARIABLE``
    The output variable to generate a unique SDPX identifier in.
+
+``CHECK``
+   Verify and return the given identifier.
 
 ``HINTS``
    One or more hints, which are converted into a valid identifier.
