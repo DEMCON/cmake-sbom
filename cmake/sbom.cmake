@@ -255,7 +255,8 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 		)
 	else()
 		foreach(_f IN LISTS SBOM_GENERATE_INPUT)
-			set(_f_in "${CMAKE_CURRENT_BINARY_DIR}/${_f}")
+			get_filename_component(_f_name "${_f}" NAME)
+			set(_f_in "${CMAKE_CURRENT_BINARY_DIR}/${_f_name}")
 			set(_f_in_gen "${_f_in}_gen")
 			configure_file("${_f}" "${_f_in}" @ONLY)
 			file(
@@ -550,8 +551,8 @@ function(sbom_target)
 			)
 			sbom_file(
 				FILENAME
-					${CMAKE_INSTALL_LIBDIR}/$<TARGET_LINKER_FILE:${SBOM_TARGET_TARGET}>
-				FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
+					${CMAKE_INSTALL_LIBDIR}/$<TARGET_LINKER_FILE_NAME:${SBOM_TARGET_TARGET}>
+				FILETYPE BINARY OPTIONAL ${SBOM_TARGET_UNPARSED_ARGUMENTS}
 			)
 		else()
 			sbom_file(
