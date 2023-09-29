@@ -25,9 +25,20 @@ jobs:
       - name: build
         run: dist/ubuntu/build.sh
 
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: bootstrap
+        run: |
+          dist/macos/bootstrap.sh
+      - name: build
+        run: dist/macos/build.sh
+
   # Dummy job that depends on all other build-* jobs.
   build-all-check:
-    needs: [build-ubuntu]
+    needs: [build-ubuntu, build-macos]
     runs-on: ubuntu-latest
     if: success()
     outputs:
