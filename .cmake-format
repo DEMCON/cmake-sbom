@@ -8,6 +8,7 @@ parse:
     sbom_spdxid:
       kwargs:
         VARIABLE: 1
+        CHECK: 1
         HINTS: '*'
     sbom_generate:
       kwargs:
