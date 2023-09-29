@@ -36,9 +36,17 @@ jobs:
       - name: build
         run: dist/macos/build.sh
 
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: build
+        run: dist\win32\build.cmd
+
   # Dummy job that depends on all other build-* jobs.
   build-all-check:
-    needs: [build-ubuntu, build-macos]
+    needs: [build-ubuntu, build-macos, build-windows]
     runs-on: ubuntu-latest
     if: success()
     outputs:
