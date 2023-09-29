@@ -159,6 +159,7 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``OUTPUT``
    Output filename.
    It should probably start with ``${CMAKE_INSTALL_PREFIX}``, as the file is generated during ``install``.
+   The variable ``SBOM_FILENAME`` is set to the full path.
 
 ``INPUT``
    One or more file names, which are concatenated into the SBOM output file.
@@ -220,7 +221,7 @@ Add something to the SBOM.
    Refer to the `SPDX specification <SPDX>`_.
 
 ``SPDXID``
-   The ID to use.
+   The ID to use for identifier generation.
    By default, generate a new one.
    Whether or not this is specified, the variable ``SBOM_LAST_SPDXID`` is set to just generated/used SPDXID, which could be used for later relationship definitions.
 
@@ -253,7 +254,7 @@ Add something to the SBOM.
 
    sbom_add(
       PACKAGE <name>
-      DOWNLOAD_LOCATION <URL>
+      [DOWNLOAD_LOCATION <URL>]
       [EXTREF <ref>...]
       [LICENSE <string>]
       [RELATIONSHIP <string>]
@@ -320,7 +321,28 @@ Finalize the SBOM and verify its contents and/or format.
 
 .. code:: cmake
 
-   sbom_finalize()
+   sbom_finalize(
+      [NO_VERIFY | VERIFY]
+   )
+   
+   sbom_finalize(
+      GRAPH <filename>
+   )
+
+``NO_VERIFY``
+   Do not run the verification against the generated SBOM.
+   By default, verification is only performed when python3 is found with the appropriate packages.
+
+``VERIFY``
+   Always run the verification against the generated SBOM.
+   Make sure to install ``dist/common/requirements.txt`` in your python environment first.
+
+``GRAPH``
+   Generate a dependency graph of the SBOM.
+   This implies ``VERIFY``.
+   It requires ``spdx-tools[graph_generation]`` python package to be installed first.
+
+
 
 License
 -------
