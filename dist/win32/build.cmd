@@ -32,7 +32,7 @@ if not exist build mkdir build
 if errorlevel 1 goto error
 cd build
 if errorlevel 1 goto error
-cmake ..\..\.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="%cmake_here%/build/deploy" -DCMAKE_MODULE_PATH="%cmake_here%/../../cmake" -DPython3_ROOT_DIR="%cmake_here%/../venv" %*
+cmake ..\..\.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="%cmake_here%/build/deploy" -DCMAKE_MODULE_PATH="%cmake_here%/../../cmake" -DPython3_EXECUTABLE="%cmake_here%/../venv/Scripts/python.exe" %*
 if errorlevel 1 goto error
 cmake --build . --target install
 if errorlevel 1 goto error
