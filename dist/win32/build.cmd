@@ -1,6 +1,6 @@
 @echo off
 
-rem SPDX-FileCopyrightText: 2023 Jochem Rutgers
+rem SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
 rem
 rem SPDX-License-Identifier: MIT
 
