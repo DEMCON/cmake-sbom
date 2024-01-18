@@ -1,7 +1,7 @@
 ﻿
 
 ..
-   SPDX-FileCopyrightText: 2023 Jochem Rutgers
+   SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
    
    SPDX-License-Identifier: CC0-1.0
 
@@ -25,7 +25,16 @@ Added
 
 ...
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.1.0...HEAD
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.1.1...HEAD
+
+
+
+`1.1.1`_ - 2024-01-xx
+---------------------
+
+Bugfixes.
+
+.. _1.1.1: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.1.1
 
 
 
