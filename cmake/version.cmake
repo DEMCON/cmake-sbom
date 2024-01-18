@@ -246,12 +246,6 @@ function(version_generate)
 	if(NOT TARGET ${PROJECT_NAME}-version)
 		add_library(${PROJECT_NAME}-version INTERFACE)
 
-		set_target_properties(
-			${PROJECT_NAME}-version
-			PROPERTIES PUBLIC_HEADER
-				   "${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}_version.h"
-		)
-
 		target_include_directories(
 			${PROJECT_NAME}-version
 			INTERFACE "$<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>"
