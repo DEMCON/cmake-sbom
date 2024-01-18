@@ -169,7 +169,10 @@ function(sbom_generate)
 		)
 	endif()
 
-	string(REGEX REPLACE "[^-A-Za-z.]+" "-" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
+	string(REGEX REPLACE "[^A-Za-z0-9.]+" "-" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
+	string(REGEX REPLACE "-+$" "" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
+	# Prevent collision with other generated SPDXID with -[0-9]+ suffix.
+	string(REGEX REPLACE "-([0-9]+)$" "\\1" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
 
 	install(
 		CODE "
