@@ -2,13 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.17)
+if(NOT CMAKE_VERSION VERSION_LESS 3.17)
 	set(rmdir rm -rf)
 else()
 	set(rmdir "remove_directory")
 endif()
 
-add_custom_target(test ALL)
+add_custom_target(tests ALL)
 
 sbom_find_python(REQUIRED)
 
@@ -40,7 +40,7 @@ project(${name})"
 		VERBATIM
 	)
 
-	add_dependencies(test test-${name})
+	add_dependencies(tests test-${name})
 endfunction()
 
 test(minimal)
