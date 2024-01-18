@@ -1,7 +1,7 @@
 ﻿
 
 ..
-   SPDX-FileCopyrightText: 2023 Jochem Rutgers
+   SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
    
    SPDX-License-Identifier: CC0-1.0
 
