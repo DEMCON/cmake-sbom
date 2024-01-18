@@ -248,8 +248,7 @@ function(version_generate)
 
 		set_target_properties(
 			${PROJECT_NAME}-version
-			PROPERTIES LINKER_LANGUAGE C
-				   PUBLIC_HEADER
+			PROPERTIES PUBLIC_HEADER
 				   "${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}_version.h"
 		)
 
