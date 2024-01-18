@@ -216,12 +216,12 @@ Add something to the SBOM.
 
 ``FILETYPE``
    The SPDX File Type.
-   Refer to the `SPDX specification <SPDX>`_.
+   Refer to the `SPDX specification <SPDX_>`_.
 
 ``RELATIONSHIP``
    A relationship definition related to this file.
    The string ``@SBOM_LAST_SPDXID@`` will be replaced by the SPDXID that is used for this SBOM item.
-   Refer to the `SPDX specification <SPDX>`_.
+   Refer to the `SPDX specification <SPDX_>`_.
 
 ``SPDXID``
    The ID to use for identifier generation.
