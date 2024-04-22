@@ -317,7 +317,7 @@ macro(sbom_find_python)
 	endif()
 
 	if(Python3_FOUND)
-		if(NOT DEFINED SBOM_HAVE_PYTHON_DEPS)
+		if(NOT SBOM_HAVE_PYTHON_DEPS)
 			execute_process(
 				COMMAND
 					${Python3_EXECUTABLE} -c "
