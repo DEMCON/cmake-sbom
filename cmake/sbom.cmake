@@ -133,10 +133,14 @@ function(sbom_generate)
 	endif()
 
 	if("${SBOM_GENERATE_PROJECT}" STREQUAL "")
-		# The Package- suffix should not be required by NTIA, but the
-		# ntia-conformance-checker 2.0.0 seems to check for it. Probably a bug, but add a
-		# workaround anyway.
-		set(SBOM_GENERATE_PROJECT "Package-${PROJECT_NAME}")
+		set(SBOM_GENERATE_PROJECT "${PROJECT_NAME}")
+	endif()
+
+	# The Package- prefix should not be required by NTIA, but the ntia-conformance-checker 2.0.0
+	# seems to check for it. Probably a bug, but add a workaround anyway.
+	string(REGEX MATCH "^Package-" PACKAGE_PREFIX_MATCH ${SBOM_GENERATE_PROJECT})
+	if("${PACKAGE_PREFIX_MATCH}" STREQUAL "")
+		string(PREPEND SBOM_GENERATE_PROJECT "Package-")
 	endif()
 
 	if("${SBOM_GENERATE_SUPPLIER}" STREQUAL "")
