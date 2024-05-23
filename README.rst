@@ -26,7 +26,8 @@ See the `example`_.
 
 **Contents**
 
-.. contents:: :local:
+.. contents::
+   :local:
 
 
 Version extraction
