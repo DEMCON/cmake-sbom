@@ -10,6 +10,8 @@ cmake_policy(VERSION 3.5)
 
 project(cmake-sbom)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 include(sbom)
 
 reuse_lint()
