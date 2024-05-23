@@ -2,12 +2,12 @@ SPDXVersion: SPDX-2.3
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
 DocumentName: sbom-1
-DocumentNamespace: https://demcon.com/spdxdocs/example-project-1.0.0
+DocumentNamespace: https://demcon.com/spdxdocs/example-project-1.1.2
 Creator: Organization: Demcon
 Creator: Tool: cmake-sbom
-CreatorComment: <text>This SPDX document was created from CMake 3.22.1, using cmake-sbom
+CreatorComment: <text>This SPDX document was created from CMake 3.21.0, using cmake-sbom
 from https://github.com/DEMCON/cmake-sbom</text>
-Created: 2023-09-28T07:15:24Z
+Created: 2024-05-23T21:45:34Z
 
 PackageName: GNU
 SPDXID: SPDXRef-compiler
@@ -21,39 +21,39 @@ FilesAnalyzed: false
 PackageSummary: <text>The compiler as identified by CMake, running on Linux (x86_64)</text>
 PrimaryPackagePurpose: APPLICATION
 Relationship: SPDXRef-compiler CONTAINS NOASSERTION
-Relationship: SPDXRef-compiler BUILD_DEPENDENCY_OF SPDXRef-example-project
-RelationshipComment: <text>SPDXRef-example-project is built by compiler GNU (/usr/bin/c++) version 11.4.0</text>
+Relationship: SPDXRef-compiler BUILD_DEPENDENCY_OF SPDXRef-Package-example-project
+RelationshipComment: <text>SPDXRef-Package-example-project is built by compiler GNU (/usr/bin/c++) version 11.4.0</text>
 
 PackageName: example-project
-SPDXID: SPDXRef-example-project
+SPDXID: SPDXRef-Package-example-project
 ExternalRef: SECURITY cpe23Type cpe:2.3:o:canonical:ubuntu_linux:-:*:*:*:*:*:x86_64:*
-ExternalRef: PACKAGE-MANAGER purl pkg:supplier/Demcon/example-project@1.0.0
-PackageVersion: 1.0.0
+ExternalRef: PACKAGE-MANAGER purl pkg:supplier/Demcon/example-project@1.1.2
+PackageVersion: 1.1.2
 PackageSupplier: Organization: Demcon
 PackageDownloadLocation: NOASSERTION
 PackageLicenseConcluded: CC0-1.0
 PackageLicenseDeclared: CC0-1.0
-PackageCopyrightText: 2023 Demcon
+PackageCopyrightText: 2024 Demcon
 PackageHomePage: https://demcon.com
-PackageComment: <text>Built by CMake 3.22.1 with Debug configuration for Linux (x86_64)</text>
-PackageVerificationCode: 669459011fa5d728becf992cd2ecdbac107f4cd5
-BuiltDate: 2023-09-28T07:15:24Z
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-example-project
+PackageComment: <text>Built by CMake 3.21.0 with Debug configuration for Linux (x86_64)</text>
+PackageVerificationCode: e7587f0702027a367d76cd9b07918233ddd9c298
+BuiltDate: 2024-05-23T21:45:34Z
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package-example-project
 
 FileName: ./bin/example
 SPDXID: SPDXRef-bin-TARGET-FILE-NAME-example-0
 FileType: BINARY
-FileChecksum: SHA1: 472f00843563b92f66f72365dbd2ab089bb28ca9
+FileChecksum: SHA1: 7a9bd3c9f411cf5805e42bfaaea9fe965a2cfeeb
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: NOASSERTION
 FileCopyrightText: NOASSERTION
-Relationship: SPDXRef-example-project CONTAINS SPDXRef-bin-TARGET-FILE-NAME-example-0
+Relationship: SPDXRef-Package-example-project CONTAINS SPDXRef-bin-TARGET-FILE-NAME-example-0
 
 FileName: ./share/example/version.txt
 SPDXID: SPDXRef-share-example-version-txt-1
 FileType: DOCUMENTATION
-FileChecksum: SHA1: 91e95be6b6634e3c21072dfcd661146728694326
+FileChecksum: SHA1: e3429934f4f3ac1c68dc8b2eef6c7df0aa7a7f9c
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: NOASSERTION
 FileCopyrightText: NOASSERTION
-Relationship: SPDXRef-example-project CONTAINS SPDXRef-share-example-version-txt-1
+Relationship: SPDXRef-Package-example-project CONTAINS SPDXRef-share-example-version-txt-1
