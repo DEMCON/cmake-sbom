@@ -16,8 +16,8 @@ fi
 mkdir -p build
 cd build
 
-cmake ../../.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="`pwd`/deploy" \
-	-DCMAKE_MODULE_PATH="`pwd`/../../../cmake" -DPython3_ROOT_DIR="`pwd`/../../venv" "$@"
+cmake ../../.. --no-warn-unused-cli -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="`pwd`/deploy" \
+	-DPython3_ROOT_DIR="`pwd`/../../venv" -DPython3_EXECUTABLE="`pwd`/../../venv/bin/python3" "$@"
 
 cmake --build . --target install
 
