@@ -28,16 +28,17 @@ See the `example`_.
 
    **Contents**
 
-   - `Version extraction`_
+   - `Version extraction <sec_version_extraction_>`_
    - `SBOM generation`_
-      - `sbom_spdxid`_
-      - `sbom-generate`_
-      - `sbom-add`_
-      - `sbom-finalize`_
+      - `sbom_spdxid() <sec_sbom_spdxid_>`_
+      - ```sbom_generate()`` <sec_sbom_generate_>`_
+      - `sbom_add`_
+      - `sbom_finalize`_
    - `Testing`_
    - `License`_
 
 
+.. _sec_version_extraction:
 
 Version extraction
 ------------------
@@ -99,8 +100,6 @@ Additionally, it creates:
 SBOM generation
 ---------------
 
-.. contents:: :local:
-
 In your ``CMakeLists.txt``, make sure the ``cmake`` directory is in your ``CMAKE_MODULE_PATH``.
 Then call ``include(sbom)`` from you ``CMakeLists.txt`` to setup the SBOM functions.
 The concept is that an SBOM is generated for one project.
@@ -128,6 +127,8 @@ Generally, the following sequence is executed to create the SBOM:
 
 ``cmake/sbom.cmake`` provides the following functions:
 
+.. _sec_sbom_spdxid:
+
 ``sbom_spdxid``
 ```````````````
 
@@ -150,6 +151,8 @@ Generate a unique SPDX identifier.
    One or more hints, which are converted into a valid identifier.
    The first non-empty hint is used.
    If no hint is specified, a unique identifier is returned, with unspecified format.
+
+.. _sec_sbom_generate:
 
 ``sbom_generate``
 `````````````````
