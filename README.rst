@@ -36,6 +36,7 @@ See the `example`_.
       - `sbom_generate() <sec_sbom_generate_>`_
       - `sbom_add() <sec_sbom_add_>`_
       - `sbom_finalize() <sec_sbom_finalize_>`_
+   - `How to use <sec_how_to_use_>`_
    - `Testing <sec_testing_>`_
    - `License <sec_license_>`_
 
@@ -389,6 +390,51 @@ Finalize the SBOM and verify its contents and/or format.
 
 
 
+.. _sec_how_to_use:
+
+|  
+
+How to use
+----------
+
+To use this library, perform the following steps:
+
+1. Put this repository somewhere on your system (e.g., make it a Git submodule in your project).
+2. Add ``cmake-sbom/cmake`` to your ``CMAKE_MODULE_PATH``:
+
+   .. code:: cmake
+
+      list(APPEND CMAKE_MODULE_PATH "path/to/cmake-sbom/cmake")
+
+3. Optional: when you want to verify the generated SBOM for `NTIA`_ compliance, install ``dist/common/requirements.txt`` in your Python (virtual) environment:
+
+   .. code:: bash
+
+      $ python3 -m pip install -r path/to/cmake-sbom/dist/common/requirements.txt
+
+4. In your top-level ``CMakeLists.txt``, prepare the SBOM:
+
+   .. code:: cmake
+
+      include(sbom)
+      sbom_generate(SUPPLIER you SUPPLIER_URL https://some.where)
+      # Add sbom_add() ...
+      sbom_finalize()
+
+5. Build *and install* your project, such as:
+
+   .. code:: bash
+
+      mkdir build
+      cd build
+      cmake ..
+      cmake --build . --target all
+      cmake --build . --target install
+
+   The SBOM will by default be generated in your ``CMAKE_INSTALL_PREFIX`` directory (see also CMake output).
+
+
+
 .. _sec_testing:
 
 |  
@@ -397,7 +443,7 @@ Testing
 -------
 
 For testing purposes, go to ``dist/<your_platform>``, run ``bootstrap`` to install system dependencies, and then run ``build`` to build the example and all tests.
-This is not required when integrating this repository in your build.
+Running the bootstrap and building is not required when you only want to use this library in your project, as discussed `above <sec_how_to_use_>`_.
 
 
 
