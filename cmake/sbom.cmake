@@ -202,7 +202,11 @@ function(sbom_generate)
 
 		set(_f "${CMAKE_CURRENT_BINARY_DIR}/SPDXRef-DOCUMENT.spdx.in")
 
-		get_filename_component(doc_name "${SBOM_GENERATE_OUTPUT}" NAME_WE)
+		if(CMAKE_VERSION VERSION_LESS 3.14)
+			get_filename_component(doc_name "${SBOM_GENERATE_OUTPUT}" NAME_WE)
+		else()
+			get_filename_component(doc_name "${SBOM_GENERATE_OUTPUT}" NAME_WLE)
+		endif()
 
 		file(
 			GENERATE
