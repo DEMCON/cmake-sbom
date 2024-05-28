@@ -24,10 +24,16 @@ See the `example`_.
 .. _NTIA: http://ntia.gov/SBOM
 .. _example: https://github.com/DEMCON/cmake-sbom/tree/main/example
 
-**Contents**
+
+
+   **Contents**
 
    - `Version extraction`_
    - `SBOM generation`_
+      - `sbom_spdxid`_
+      - `sbom-generate`_
+      - `sbom-add`_
+      - `sbom-finalize`_
    - `Testing`_
    - `License`_
 
