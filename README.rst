@@ -18,7 +18,7 @@ It automates two tasks:
 The version extraction helps to get the version in the application and SBOM right.
 The SBOM contains the files you mention explicitly, just like you mention what to ``install()`` in CMake.
 
-See the `example`_.
+To integrate this library in your project, see `below <sec_how_to_use_>` for basic instructions or the `example`_ for a complete example project.
 
 .. _SPDX: https://spdx.github.io/spdx-spec/v2.3/
 .. _NTIA: http://ntia.gov/SBOM
@@ -400,7 +400,8 @@ How to use
 To use this library, perform the following steps:
 
 1. Put this repository somewhere on your system (e.g., make it a Git submodule in your project).
-2. Add ``cmake-sbom/cmake`` to your ``CMAKE_MODULE_PATH``:
+2. Add the ``cmake`` directory to your ``CMAKE_MODULE_PATH``.
+   For example, add to your ``CMakeLists.txt``:
 
    .. code:: cmake
 
@@ -412,7 +413,7 @@ To use this library, perform the following steps:
 
       $ python3 -m pip install -r path/to/cmake-sbom/dist/common/requirements.txt
 
-4. In your top-level ``CMakeLists.txt``, prepare the SBOM:
+4. In your top-level ``CMakeLists.txt``, somwhere after ``project(...)``, prepare the SBOM:
 
    .. code:: cmake
 
