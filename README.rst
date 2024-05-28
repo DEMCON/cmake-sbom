@@ -26,8 +26,11 @@ See the `example`_.
 
 **Contents**
 
-.. contents::
-   :local:
+   - `Version extraction`_
+   - `SBOM generation`_
+   - `Testing`_
+   - `License`_
+
 
 
 Version extraction
