@@ -29,13 +29,14 @@ See the `example`_.
    **Contents**
 
    - `Version extraction <sec_version_extraction_>`_
-   - `SBOM generation`_
+   - `SBOM generation <sec_sbom_generation_>`_
       - `sbom_spdxid() <sec_sbom_spdxid_>`_
-      - `\``sbom_generate()`` <sec_sbom_generate_>`_
-      - `sbom_add`_
-      - `sbom_finalize`_
-   - `Testing`_
-   - `License`_
+      - `sbom_generate() <sec_sbom_generate_>`_
+      - `sbom_add() <sec_sbom_add_>`_
+      - `sbom_finalize() <sec_sbom_finalize_>`_
+   - `Testing <sec_testing_>`_
+   - `License <sec_license_>`_
+
 
 
 .. _sec_version_extraction:
@@ -99,6 +100,10 @@ Additionally, it creates:
 
 
 
+.. _sec_sbom_generation:
+
+|  
+
 SBOM generation
 ---------------
 
@@ -129,7 +134,11 @@ Generally, the following sequence is executed to create the SBOM:
 
 ``cmake/sbom.cmake`` provides the following functions:
 
+
+
 .. _sec_sbom_spdxid:
+
+|  
 
 ``sbom_spdxid``
 ```````````````
@@ -154,7 +163,11 @@ Generate a unique SPDX identifier.
    The first non-empty hint is used.
    If no hint is specified, a unique identifier is returned, with unspecified format.
 
+
+
 .. _sec_sbom_generate:
+
+|  
 
 ``sbom_generate``
 `````````````````
@@ -209,6 +222,12 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``SUPPLIER_URL``
    Supplier home page.
    It may be omitted when the variable ``SBOM_SUPPLIER_URL`` is set or when any ``INPUT`` is given.
+
+
+
+.. _sec_sbom_add:
+
+|  
 
 ``sbom_add``
 ````````````
@@ -332,6 +351,12 @@ Add something to the SBOM.
    The package identifier is added automatically.
    The variable ``SBOM_LAST_SPDXID`` is set to the used identifier.
 
+
+
+.. _sec_sbom_finalize:
+
+|  
+
 ``sbom_finalize``
 `````````````````
 
@@ -362,6 +387,10 @@ Finalize the SBOM and verify its contents and/or format.
 
 
 
+.. _sec_sbom_testing:
+
+|  
+
 Testing
 -------
 
@@ -369,6 +398,10 @@ For testing purposes, go to ``dist/<your_platform>``, run ``bootstrap`` to insta
 This is not required when integrating this repository in your build.
 
 
+
+.. _sec_sbom_license:
+
+|  
 
 License
 -------
