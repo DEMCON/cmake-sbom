@@ -26,6 +26,8 @@ See the `example`_.
 
 
 
+|  
+
    **Contents**
 
    - `Version extraction <sec_version_extraction_>`_
@@ -387,7 +389,7 @@ Finalize the SBOM and verify its contents and/or format.
 
 
 
-.. _sec_sbom_testing:
+.. _sec_testing:
 
 |  
 
@@ -399,7 +401,7 @@ This is not required when integrating this repository in your build.
 
 
 
-.. _sec_sbom_license:
+.. _sec_license:
 
 |  
 
