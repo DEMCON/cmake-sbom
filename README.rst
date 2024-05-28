@@ -31,7 +31,7 @@ See the `example`_.
    - `Version extraction <sec_version_extraction_>`_
    - `SBOM generation`_
       - `sbom_spdxid() <sec_sbom_spdxid_>`_
-      - `\ ``sbom_generate()`` <sec_sbom_generate_>`_
+      - `\``sbom_generate()`` <sec_sbom_generate_>`_
       - `sbom_add`_
       - `sbom_finalize`_
    - `Testing`_
@@ -40,7 +40,7 @@ See the `example`_.
 
 .. _sec_version_extraction:
 
-|  
+|  
 
 Version extraction
 ------------------
