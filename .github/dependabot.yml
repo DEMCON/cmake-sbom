@@ -10,7 +10,7 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/dist/common"
     schedule:
       interval: "weekly"
     groups:
