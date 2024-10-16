@@ -894,28 +894,69 @@ endfunction()
 # Adds a target that performs `python3 -m reuse lint'.  Python is required with the proper packages
 # installed (see dist/common/requirements.txt).
 function(reuse_lint)
-	if(NOT TARGET ${PROJECT_NAME}-reuse-lint)
+	set(options CONFIG ALL)
+	set(oneValueArgs TARGET)
+	set(multiValueArgs)
+	cmake_parse_arguments(REUSE_LINT "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+	if(NOT REUSE_LINT_TARGET)
+		set(REUSE_LINT_TARGET ${PROJECT_NAME}-reuse-lint)
+	endif()
+
+	if(REUSE_LINT_ALL OR NOT REUSE_LINT_CONFIG)
+		set(lint_all ALL)
+	else()
+		set(lint_all)
+	endif()
+
+	if(NOT TARGET ${REUSE_LINT_TARGET})
 		sbom_find_python(REQUIRED)
 
 		add_custom_target(
-			${PROJECT_NAME}-reuse-lint ALL
+			${REUSE_LINT_TARGET}
+			${lint_all}
 			COMMAND ${Python3_EXECUTABLE} -m reuse --root "${PROJECT_SOURCE_DIR}" lint
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 			VERBATIM
 		)
+	endif()
+
+	if(REUSE_LINT_CONFIG)
+		sbom_find_python(REQUIRED)
+
+		# It seems that there is a race in linting and generating build artifacts. So, run
+		# this (also) during config, to make sure that there is nothing else going on.
+		execute_process(
+			COMMAND ${Python3_EXECUTABLE} -m reuse --root "${PROJECT_SOURCE_DIR}" lint
+			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+			RESULT_VARIABLE res
+		)
+
+		if(NOT "${res}" EQUAL 0)
+			message(FATAL_ERROR "${REUSE_LINT_TARGET} failed")
+		endif()
 	endif()
 endfunction()
 
 # Adds a target that generates a SPDX file of the source code.  Python is required with the proper
 # packages installed (see dist/common/requirements.txt).
 function(reuse_spdx)
-	if(NOT TARGET ${PROJECT_NAME}-reuse-spdx)
+	set(options)
+	set(oneValueArgs TARGET)
+	set(multiValueArgs)
+	cmake_parse_arguments(REUSE_SPDX "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+	if(NOT REUSE_SPDX_TARGET)
+		set(REUSE_SPDX_TARGET ${PROJECT_NAME}-reuse-spdx)
+	endif()
+
+	if(NOT TARGET ${REUSE_SPDX_TARGET})
 		sbom_find_python(REQUIRED)
 
 		set(outfile "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-src.spdx")
 
 		add_custom_target(
-			${PROJECT_NAME}-reuse-spdx ALL
+			${REUSE_SPDX_TARGET} ALL
 			COMMAND ${Python3_EXECUTABLE} -m reuse --root "${PROJECT_SOURCE_DIR}" spdx
 				-o "${outfile}"
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
