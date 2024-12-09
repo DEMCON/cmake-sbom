@@ -152,8 +152,11 @@ function(version_extract)
 
 		set(GIT_VERSION "${_GIT_VERSION}${version_git_dirty}")
 	else()
+		string(REGEX REPLACE "[^A-Za-z0-9]+" "+" _version_git_branch
+				     "${version_git_branch}"
+		)
 		set(GIT_VERSION
-		    "${version_git_head}+${version_git_branch}${version_build}${version_git_dirty}"
+		    "${version_git_head}+${_version_git_branch}${version_build}${version_git_dirty}"
 		)
 	endif()
 
