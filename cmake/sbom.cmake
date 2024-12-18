@@ -124,7 +124,7 @@ function(sbom_generate)
 
 	if("${SBOM_GENERATE_OUTPUT}" STREQUAL "")
 		set(SBOM_GENERATE_OUTPUT
-		    "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${PROJECT_NAME}-sbom-${GIT_VERSION_PATH}.spdx"
+		    "\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${PROJECT_NAME}-sbom-${GIT_VERSION_PATH}.spdx"
 		)
 	endif()
 
@@ -508,12 +508,12 @@ function(sbom_file)
 			"
 			cmake_policy(SET CMP0011 NEW)
 			cmake_policy(SET CMP0012 NEW)
-			if(NOT EXISTS ${CMAKE_INSTALL_PREFIX}/${SBOM_FILE_FILENAME})
+			if(NOT EXISTS \"\${CMAKE_INSTALL_PREFIX}/${SBOM_FILE_FILENAME}\")
 				if(NOT ${SBOM_FILE_OPTIONAL})
 					message(FATAL_ERROR \"Cannot find ${SBOM_FILE_FILENAME}\")
 				endif()
 			else()
-				file(SHA1 ${CMAKE_INSTALL_PREFIX}/${SBOM_FILE_FILENAME} _sha1)
+				file(SHA1 \${CMAKE_INSTALL_PREFIX}/${SBOM_FILE_FILENAME} _sha1)
 				list(APPEND SBOM_VERIFICATION_CODES \${_sha1})
 				file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
 \"
@@ -632,13 +632,13 @@ function(sbom_directory)
 		CONTENT
 			"
 			file(GLOB_RECURSE _files
-				LIST_DIRECTORIES false RELATIVE \"${CMAKE_INSTALL_PREFIX}\"
-				\"${CMAKE_INSTALL_PREFIX}/${SBOM_DIRECTORY_DIRECTORY}/*\"
+				LIST_DIRECTORIES false RELATIVE \"\${CMAKE_INSTALL_PREFIX}\"
+				\"\${CMAKE_INSTALL_PREFIX}/${SBOM_DIRECTORY_DIRECTORY}/*\"
 			)
 
 			set(_count 0)
 			foreach(_f IN LISTS _files)
-				file(SHA1 \"${CMAKE_INSTALL_PREFIX}/\${_f}\" _sha1)
+				file(SHA1 \"\${CMAKE_INSTALL_PREFIX}/\${_f}\" _sha1)
 				list(APPEND SBOM_VERIFICATION_CODES \${_sha1})
 				file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
 \"
