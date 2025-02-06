@@ -1,8 +1,8 @@
-# SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
 #
 # SPDX-License-Identifier: MIT
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.10)
 
 if(COMMAND version_generate)
 	version_extract()
