@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
 #
 # SPDX-License-Identifier: MIT
 
@@ -18,8 +18,8 @@ function(test name)
 	make_directory(${_dir}/build)
 
 	set(TEST_PREAMBLE
-	    "cmake_minimum_required(VERSION 3.5)
-cmake_policy(VERSION 3.5)
+	    "cmake_minimum_required(VERSION 3.10)
+cmake_policy(VERSION 3.10)
 project(${name})"
 	)
 

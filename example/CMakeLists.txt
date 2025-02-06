@@ -1,12 +1,12 @@
-# SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
 #
 # SPDX-License-Identifier: CC0-1.0
 
 # ##################################################################################################
 # Preamble
 
-cmake_minimum_required(VERSION 3.7.1)
-cmake_policy(VERSION 3.7.1)
+cmake_minimum_required(VERSION 3.10)
+cmake_policy(VERSION 3.10)
 
 project(example-project)
 
