@@ -18,7 +18,7 @@ It automates two tasks:
 The version extraction helps to get the version in the application and SBOM right.
 The SBOM contains the files you mention explicitly, just like you mention what to ``install()`` in CMake.
 
-To integrate this library in your project, see `below <sec_how_to_use_>` for basic instructions or the `example`_ for a complete example project.
+To integrate this library in your project, see `below <sec_how_to_use_>`_ for basic instructions or the `example`_ for a complete example project.
 
 .. _SPDX: https://spdx.github.io/spdx-spec/v2.3/
 .. _NTIA: http://ntia.gov/SBOM
@@ -36,6 +36,9 @@ To integrate this library in your project, see `below <sec_how_to_use_>` for bas
       - `sbom_generate() <sec_sbom_generate_>`_
       - `sbom_add() <sec_sbom_add_>`_
       - `sbom_finalize() <sec_sbom_finalize_>`_
+   - `REUSE compliance <sec_reuse_>`_
+      - `reuse_lint() <sec_reuse_lint_>`_
+      - `reuse_spdx() <sec_reuse_spdx_>`_
    - `How to use <sec_how_to_use_>`_
    - `Testing <sec_testing_>`_
    - `License <sec_license_>`_
@@ -387,6 +390,69 @@ Finalize the SBOM and verify its contents and/or format.
    Generate a dependency graph of the SBOM.
    This implies ``VERIFY``.
    It requires ``spdx-tools[graph_generation]`` python package to be installed first.
+
+
+
+.. _sec_reuse:
+
+|  
+
+REUSE
+-----
+
+This section lists a few functions that help with `REUSE`_ compliance of your repository.
+
+.. _sec_reuse_lint:
+
+|  
+
+``reuse_lint``
+``````````````
+
+Perform checking for `REUSE`_ compliance of the project repository source files.
+
+.. code:: cmake
+   
+   reuse_lint(
+      [TARGET <target>]
+      [CONFIG] [ALL]
+   )
+
+``TARGET``
+   Target name to run the linter.
+   Defaults to ``${PROJECT_NAME}-reuse-lint`` when omitted.
+
+``CONFIG``
+   Run the linting during CMake configure instead of during build.
+   When this flag is set, the target is still created too.
+
+``ALL``
+   Add a dependency from ``all`` to the ``TARGET``.
+
+
+
+.. _sec_reuse_spdx:
+
+|  
+
+``reuse_spdx``
+``````````````
+
+Export an SPDX file based on the source code of the project with copyright and license information.
+
+.. code:: cmake
+
+   reuse_spdx(
+      [TARGET <target>]
+      [OUTPUT <file>]
+   )
+
+``TARGET``
+   Target name that executes the exporter.
+   Defaults to ``${PROJECT_NAME}-reuse-spdx``.
+
+``OUTPUT``
+   The output SPDX file.
 
 
 

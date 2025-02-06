@@ -942,7 +942,7 @@ endfunction()
 # packages installed (see dist/common/requirements.txt).
 function(reuse_spdx)
 	set(options)
-	set(oneValueArgs TARGET)
+	set(oneValueArgs TARGET OUTPUT)
 	set(multiValueArgs)
 	cmake_parse_arguments(REUSE_SPDX "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -950,15 +950,17 @@ function(reuse_spdx)
 		set(REUSE_SPDX_TARGET ${PROJECT_NAME}-reuse-spdx)
 	endif()
 
+	if(NOT REUSE_SPDX_OUTPUT)
+		set(REUSE_SPDX_OUTPUT "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-src.spdx")
+	endif()
+
 	if(NOT TARGET ${REUSE_SPDX_TARGET})
 		sbom_find_python(REQUIRED)
-
-		set(outfile "${PROJECT_BINARY_DIR}/${PROJECT_NAME}-src.spdx")
 
 		add_custom_target(
 			${REUSE_SPDX_TARGET} ALL
 			COMMAND ${Python3_EXECUTABLE} -m reuse --root "${PROJECT_SOURCE_DIR}" spdx
-				-o "${outfile}"
+				-o "${REUSE_SPDX_OUTPUT}"
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 			VERBATIM
 		)
