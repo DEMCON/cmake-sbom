@@ -23,6 +23,18 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 Added
 `````
 
+...
+
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.2.0...HEAD
+
+
+
+`1.2.0`_ - 2025-02-06
+---------------------
+
+Added
+`````
+
 - Allow running ``reuse-lint`` during configure, as workaround for a race in changing files while linting during build.
 
 Fixed
@@ -31,7 +43,7 @@ Fixed
 - Postpone expansion of ``CMAKE_INSTALL_PREFIX`` for CPack support.
 - Handle non-alphanum characters in branch names.
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.1.2...HEAD
+.. _1.2.0: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.2.0
 
 
 
