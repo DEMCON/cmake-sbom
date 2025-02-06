@@ -1,7 +1,7 @@
 ﻿
 
 ..
-   SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+   SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
    
    SPDX-License-Identifier: CC0-1.0
 
@@ -23,7 +23,13 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 Added
 `````
 
-...
+- Allow running ``reuse-lint`` during configure, as workaround for a race in changing files while linting during build.
+
+Fixed
+`````
+
+- Postpone expansion of ``CMAKE_INSTALL_PREFIX`` for CPack support.
+- Handle non-alphanum characters in branch names.
 
 .. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.1.2...HEAD
 
