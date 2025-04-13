@@ -8,7 +8,7 @@
 CMake SBOM generation
 =====================
 
-This project provides a CMake module that helps generating (*Produce (Build)*) an `NTIA`_-compliant Software Bill of Materials (SBOM) in `SPDX`_ for an arbitrary CMake project.
+This project provides a CMake module that helps generating (*Produce (Build)*) an `NTIA`_-compliant Software Bill of Materials (SBOM) in `SPDX`_ 2.3.0 for an arbitrary CMake project.
 
 It automates two tasks:
 
@@ -245,6 +245,7 @@ Add something to the SBOM.
    sbom_add(
       FILENAME <filename>
       FILETYPE <type>
+      [LICENSE <string>]
       [RELATIONSHIP <string>]
       [SPDXID <id>]
    )
@@ -257,6 +258,10 @@ Add something to the SBOM.
 ``FILETYPE``
    The SPDX File Type.
    Refer to the `SPDX specification <SPDX_>`_.
+
+``LICENSE``
+   License of the file.
+   Defaults to ``NOASSERTION`` when not specified.
 
 ``RELATIONSHIP``
    A relationship definition related to this file.
@@ -273,6 +278,7 @@ Add something to the SBOM.
    sbom_add(
       DIRECTORY <path>
       FILETYPE <type>
+      [LICENSE <string>]
       [RELATIONSHIP <string>]
    )
 
@@ -280,10 +286,15 @@ Add something to the SBOM.
    A path to the directory, relative to ``CMAKE_INSTALL_PREFIX``, for which all files are to be added to the SBOM recursively.
    Generator expressions are supported.
 
+``LICENSE``
+   License of the files in the directory.
+   Defaults to ``NOASSERTION`` when not specified.
+
 .. code:: cmake
    
    sbom_add(
       TARGET <target>
+      [LICENSE <string>]
       [RELATIONSHIP <string>]
       [SPDXID <id>]
    )
@@ -292,6 +303,10 @@ Add something to the SBOM.
    The CMake target to add.
    Only executables are supported.
    It is assumed that the binary is installed under ``CMAKE_INSTALL_BINDIR``.
+
+``LICENSE``
+   License of the target.
+   Defaults to ``NOASSERTION`` when not specified.
 
 .. code:: cmake
 
@@ -356,6 +371,29 @@ Add something to the SBOM.
    Defaults to a unique identifier.
    The package identifier is added automatically.
    The variable ``SBOM_LAST_SPDXID`` is set to the used identifier.
+
+.. code:: cmake
+   
+   sbom_add(
+      LICENSE LicenseRef-<string>
+      [NAME <string>]
+      [FILE <path> | TEXT <string>]
+   )
+
+``LICENSE``
+   The ``LicenseRef-...`` identifier.
+
+``NAME``
+   The license name.
+   Defaults to ``NOASSERTION`` when not specified.
+
+``FILE``
+   The license file.
+   It defaults to ``${PROJECT_SOURCE_DIR}/LICENSES/<LICENSE>``.
+
+``TEXT``
+   The license text.
+   It defaults to the contents of ``FILE``.
 
 
 
