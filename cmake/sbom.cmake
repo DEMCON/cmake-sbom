@@ -303,8 +303,11 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 	)
 	set_property(GLOBAL PROPERTY sbom_project "${SBOM_GENERATE_PROJECT}")
 	set_property(GLOBAL PROPERTY sbom_spdxids 0)
+	set_property(GLOBAL PROPERTY sbom_licenses "")
 
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
+
+	sbom_licence_try("${SBOM_GENERATE_LICENSE}")
 endfunction()
 
 # Find python.
@@ -462,7 +465,7 @@ endfunction()
 # Append a file to the SBOM. Use this after calling sbom_generate().
 function(sbom_file)
 	set(options OPTIONAL)
-	set(oneValueArgs FILENAME FILETYPE RELATIONSHIP SPDXID)
+	set(oneValueArgs FILENAME FILETYPE LICENSE RELATIONSHIP SPDXID)
 	set(multiValueArgs)
 	cmake_parse_arguments(SBOM_FILE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 	if(SBOM_FILE_UNPARSED_ARGUMENTS)
@@ -471,6 +474,10 @@ function(sbom_file)
 
 	if("${SBOM_FILE_FILENAME}" STREQUAL "")
 		message(FATAL_ERROR "Missing FILENAME argument")
+	endif()
+
+	if("${SBOM_FILE_LICENSE}" STREQUAL "")
+		set(SBOM_FILE_LICENSE "NOASSERTION")
 	endif()
 
 	sbom_spdxid(
@@ -503,6 +510,8 @@ function(sbom_file)
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
+	sbom_licence_try("${SBOM_FILE_LICENSE}")
+
 	file(
 		GENERATE
 		OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_FILE_SPDXID}.cmake
@@ -523,7 +532,7 @@ FileName: ./${SBOM_FILE_FILENAME}
 SPDXID: ${SBOM_FILE_SPDXID}
 FileType: ${SBOM_FILE_FILETYPE}
 FileChecksum: SHA1: \${_sha1}
-LicenseConcluded: NOASSERTION
+LicenseConcluded: ${SBOM_FILE_LICENSE}
 LicenseInfoInFile: NOASSERTION
 FileCopyrightText: NOASSERTION
 Relationship: ${SBOM_FILE_RELATIONSHIP}
@@ -590,7 +599,7 @@ endfunction()
 # Append all files recursively in a directory to the SBOM. Use this after calling sbom_generate().
 function(sbom_directory)
 	set(options)
-	set(oneValueArgs DIRECTORY FILETYPE RELATIONSHIP)
+	set(oneValueArgs DIRECTORY FILETYPE LICENSE RELATIONSHIP)
 	set(multiValueArgs)
 	cmake_parse_arguments(
 		SBOM_DIRECTORY "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
@@ -611,6 +620,10 @@ function(sbom_directory)
 		message(FATAL_ERROR "Missing FILETYPE argument")
 	endif()
 
+	if("${SBOM_DIRECTORY_LICENSE}" STREQUAL "")
+		set(SBOM_DIRECTORY_LICENSE "NOASSERTION")
+	endif()
+
 	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
@@ -627,6 +640,8 @@ function(sbom_directory)
 	if("${_sbom_project}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
+
+	sbom_licence_try("${SBOM_DIRECTORY_LICENSE}")
 
 	file(
 		GENERATE
@@ -648,7 +663,7 @@ FileName: ./\${_f}
 SPDXID: ${SBOM_DIRECTORY_SPDXID}-\${_count}
 FileType: ${SBOM_DIRECTORY_FILETYPE}
 FileChecksum: SHA1: \${_sha1}
-LicenseConcluded: NOASSERTION
+LicenseConcluded: ${SBOM_DIRECTORY_LICENSE}
 LicenseInfoInFile: NOASSERTION
 FileCopyrightText: NOASSERTION
 Relationship: ${SBOM_DIRECTORY_RELATIONSHIP}-\${_count}
@@ -871,6 +886,104 @@ Relationship: ${SBOM_EXTERNAL_RELATIONSHIP}\")
 
 endfunction()
 
+# Append a LicenseRef-... license to the SBOM.
+function(sbom_license)
+	set(options)
+	set(oneValueArgs LICENSE NAME FILE TEXT)
+	set(multiValueArgs)
+	cmake_parse_arguments(
+		SBOM_LICENSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN}
+	)
+	if(SBOM_LICENSE_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${SBOM_LICENSE_UNPARSED_ARGUMENTS}")
+	endif()
+
+	if("${SBOM_LICENSE_LICENSE}" STREQUAL "")
+		message(FATAL_ERROR "Missing LICENSE")
+	endif()
+
+	if(NOT "${SBOM_LICENSE_LICENSE}" MATCHES "^LicenseRef-")
+		message(FATAL_ERROR "Only LicenseRef-... licenses are supported")
+	endif()
+
+	if("${SBOM_LICENSE_NAME}" STREQUAL "")
+		set(SBOM_LICENSE_NAME "NOASSERTION")
+	endif()
+
+	if("${SBOM_LICENSE_FILE}" STREQUAL "" AND "${SBOM_LICENSE_TEXT}" STREQUAL "")
+		set(SBOM_LICENSE_FILE "${PROJECT_SOURCE_DIR}/LICENSES/${SBOM_LICENSE_LICENSE}.txt")
+	endif()
+
+	if("${SBOM_LICENSE_TEXT}" STREQUAL "")
+		if(NOT EXISTS "${SBOM_LICENSE_FILE}")
+			message(FATAL_ERROR "Cannot find ${SBOM_LICENSE_FILE}")
+		endif()
+
+		file(READ "${SBOM_LICENSE_FILE}" SBOM_LICENSE_TEXT)
+		string(REGEX REPLACE "\r\n" "\n" SBOM_LICENSE_TEXT "${SBOM_LICENSE_TEXT}")
+	endif()
+
+	if("${SBOM_LICENSE_TEXT}" STREQUAL "")
+		message(FATAL_ERROR "Empty license text")
+	endif()
+
+	get_property(_licenses GLOBAL PROPERTY sbom_licenses)
+	if("${SBOM_LICENSE_LICENSE}" IN_LIST _licenses)
+		message(FATAL_ERROR "License already added")
+	endif()
+
+	file(
+		GENERATE
+		OUTPUT ${PROJECT_BINARY_DIR}/sbom/${SBOM_LICENSE_LICENSE}.cmake
+		CONTENT
+			"
+			file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
+\"
+LicenseID: ${SBOM_LICENSE_LICENSE}
+LicenseName: ${SBOM_LICENSE_NAME}
+ExtractedText: <text>\"
+			)
+
+			file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
+				[=[${SBOM_LICENSE_TEXT}]=]
+			)
+
+			file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"</text>\")
+			"
+	)
+
+	file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
+	     "install(SCRIPT ${PROJECT_BINARY_DIR}/sbom/${SBOM_LICENSE_LICENSE}.cmake)
+"
+	)
+
+	list(APPEND _licenses "${SBOM_LICENSE_LICENSE}")
+	set_property(GLOBAL PROPERTY sbom_licenses "${_licenses}")
+endfunction()
+
+# Try to add a license to the SBOM.
+function(sbom_licence_try id)
+	if(NOT "${id}" MATCHES "^LicenseRef-")
+		# Not an external license.
+		return()
+	endif()
+
+	get_property(_licenses GLOBAL PROPERTY sbom_licenses)
+	if("${id}" IN_LIST _licenses)
+		# Already included.
+		return()
+	endif()
+
+	set(_file "${PROJECT_SOURCE_DIR}/LICENSES/${id}.txt")
+	if(NOT EXISTS "${_file}")
+		# We don't have the license text.
+		return()
+	endif()
+
+	# Looks ok.
+	sbom_license(LICENSE "${id}" FILE "${_file}")
+endfunction()
+
 # Append something to the SBOM. Use this after calling sbom_generate().
 function(sbom_add type)
 	if("${type}" STREQUAL "FILENAME")
@@ -883,6 +996,8 @@ function(sbom_add type)
 		sbom_package(${ARGV})
 	elseif("${type}" STREQUAL "EXTERNAL")
 		sbom_external(${ARGV})
+	elseif("${type}" STREQUAL "LICENSE")
+		sbom_license(${ARGV})
 	else()
 		message(FATAL_ERROR "Unsupported sbom_add(${type})")
 	endif()
