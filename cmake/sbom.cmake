@@ -733,6 +733,8 @@ function(sbom_package)
 		set(_fields "${_fields}
 PackageLicenseConcluded: ${SBOM_PACKAGE_LICENSE}"
 		)
+
+		sbom_licence_try("${SBOM_PACKAGE_LICENSE}")
 	else()
 		set(_fields "${_fields}
 PackageLicenseConcluded: NOASSERTION"
