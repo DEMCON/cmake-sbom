@@ -188,6 +188,8 @@ Generate the header of the SBOM, based on a standard template where the given de
       [COPYRIGHT <string>]
       [LICENSE <string>]
       [NAMESPACE <URI>]
+      [DOWNLOAD_URL <URL>]
+      [EXTREF <ref>]
       [PROJECT <name>]
       [SUPPLIER <name>]
       [SUPPLIER_URL <name>]
@@ -216,6 +218,14 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``NAMESPACE``
    Document namespace.
    If not specified, default to a URL based on ``SUPPLIER_URL``, ``PROJECT_NAME`` and ``GIT_VERSION``.
+
+``DOWNLOAD_URL``
+   Download URL for the software.
+   If not specified, ``NOASSERTION`` is used.
+
+``EXTREF``
+   External reference regarding package manager information.
+   Refer to the `SPDX`_ specification for details.
 
 ``PROJECT``
    Project name.

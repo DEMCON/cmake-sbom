@@ -111,6 +111,8 @@ function(sbom_generate)
 	    SUPPLIER
 	    SUPPLIER_URL
 	    NAMESPACE
+	    DOWNLOAD_URL
+	    EXTREF
 	)
 	set(multiValueArgs INPUT)
 	cmake_parse_arguments(
@@ -130,6 +132,10 @@ function(sbom_generate)
 
 	if("${SBOM_GENERATE_LICENSE}" STREQUAL "")
 		set(SBOM_GENERATE_LICENSE "NOASSERTION")
+	endif()
+
+	if("${SBOM_GENERATE_DOWNLOAD_URL}" STREQUAL "")
+		set(SBOM_GENERATE_DOWNLOAD_URL "NOASSERTION")
 	endif()
 
 	if("${SBOM_GENERATE_PROJECT}" STREQUAL "")
@@ -176,6 +182,26 @@ function(sbom_generate)
 		)
 	endif()
 
+	if("${SBOM_GENERATE_EXTREF}" STREQUAL "")
+		string(LENGTH ${GIT_HASH} _len)
+
+		if(NOT "${SBOM_GENERATE_DOWNLOAD_URL}" STREQUAL ""
+		   AND NOT "${SBOM_GENERATE_DOWNLOAD_URL}" STREQUAL "NOASSERTION"
+		)
+			set(SBOM_GENERATE_EXTREF
+			    "PACKAGE-MANAGER purl pkg:generic/${PROJECT_NAME}@${GIT_HASH}?download_url=${SBOM_GENERATE_DOWNLOAD_URL}"
+			)
+		elseif(_len GREATER 40)
+			set(SBOM_GENERATE_EXTREF
+			    "PERSISTENT-ID gitoid gitoid:commit:sha256:${GIT_HASH}"
+			)
+		else()
+			set(SBOM_GENERATE_EXTREF
+			    "PERSISTENT-ID gitoid gitoid:commit:sha1:${GIT_HASH}"
+			)
+		endif()
+	endif()
+
 	string(REGEX REPLACE "[^A-Za-z0-9.]+" "-" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
 	string(REGEX REPLACE "-+$" "" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
 	# Prevent collision with other generated SPDXID with -[0-9]+ suffix.
@@ -216,12 +242,12 @@ function(sbom_generate)
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
 DocumentName: ${doc_name}
-DocumentNamespace: ${SBOM_GENERATE_NAMESPACE}
+DocumentNamespace: ${SBOM_GENERATE_NAMESPACE}\${SBOM_EXT_DOCS}
 Creator: Organization: ${SBOM_GENERATE_SUPPLIER}
 Creator: Tool: cmake-sbom
 CreatorComment: <text>This SPDX document was created from CMake ${CMAKE_VERSION}, using cmake-sbom
 from https://github.com/DEMCON/cmake-sbom</text>
-Created: ${NOW_UTC}\${SBOM_EXT_DOCS}
+Created: ${NOW_UTC}
 
 PackageName: ${CMAKE_CXX_COMPILER_ID}
 SPDXID: SPDXRef-compiler
@@ -241,10 +267,10 @@ RelationshipComment: <text>SPDXRef-${SBOM_GENERATE_PROJECT} is built by compiler
 PackageName: ${PROJECT_NAME}
 SPDXID: SPDXRef-${SBOM_GENERATE_PROJECT}
 ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
-ExternalRef: PACKAGE-MANAGER purl pkg:supplier/${SBOM_GENERATE_SUPPLIER}/${PROJECT_NAME}@${GIT_VERSION}
+ExternalRef: ${SBOM_GENERATE_EXTREF}
 PackageVersion: ${GIT_VERSION}
 PackageSupplier: Organization: ${SBOM_GENERATE_SUPPLIER}
-PackageDownloadLocation: NOASSERTION
+PackageDownloadLocation: ${SBOM_GENERATE_DOWNLOAD_URL}
 PackageLicenseConcluded: ${SBOM_GENERATE_LICENSE}
 PackageLicenseDeclared: ${SBOM_GENERATE_LICENSE}
 PackageCopyrightText: ${SBOM_GENERATE_COPYRIGHT}
@@ -301,7 +327,9 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 	)
 	set_property(GLOBAL PROPERTY sbom_project "${SBOM_GENERATE_PROJECT}")
 	set_property(GLOBAL PROPERTY sbom_spdxids 0)
+	set_property(GLOBAL PROPERTY sbom_packages "")
 	set_property(GLOBAL PROPERTY sbom_licenses "")
+	set_property(GLOBAL PROPERTY sbom_relations "")
 
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
 
@@ -380,6 +408,28 @@ function(sbom_finalize)
 	if("${_sbom_project}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
+
+	get_property(_packages GLOBAL PROPERTY sbom_packages)
+	foreach(_p IN LISTS _packages)
+		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT ${_p})
+"
+		)
+	endforeach()
+
+	get_property(_licenses GLOBAL PROPERTY sbom_licenses)
+	foreach(_lic IN LISTS _licenses)
+		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
+		     "install(SCRIPT ${PROJECT_BINARY_DIR}/sbom/${_lic}.cmake)
+"
+		)
+	endforeach()
+
+	get_property(_relations GLOBAL PROPERTY sbom_relations)
+	foreach(_rel IN LISTS _relations)
+		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT ${_rel})
+"
+		)
+	endforeach()
 
 	file(
 		WRITE ${PROJECT_BINARY_DIR}/sbom/verify.cmake
@@ -496,11 +546,14 @@ function(sbom_file)
 	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
-	if("${SBOM_FILE_RELATIONSHIP}" STREQUAL "")
-		set(SBOM_FILE_RELATIONSHIP "SPDXRef-${_sbom_project} CONTAINS ${SBOM_FILE_SPDXID}")
-	else()
+	set(relationship "")
+	if(NOT "${SBOM_FILE_RELATIONSHIP}" STREQUAL "")
 		string(REPLACE "@SBOM_LAST_SPDXID@" "${SBOM_FILE_SPDXID}" SBOM_FILE_RELATIONSHIP
 			       "${SBOM_FILE_RELATIONSHIP}"
+		)
+
+		set(relationship "
+Relationship: ${SBOM_FILE_RELATIONSHIP}"
 		)
 	endif()
 
@@ -532,8 +585,7 @@ FileType: ${SBOM_FILE_FILETYPE}
 FileChecksum: SHA1: \${_sha1}
 LicenseConcluded: ${SBOM_FILE_LICENSE}
 LicenseInfoInFile: NOASSERTION
-FileCopyrightText: NOASSERTION
-Relationship: ${SBOM_FILE_RELATIONSHIP}
+FileCopyrightText: NOASSERTION${relationship}
 \"
 				)
 			endif()
@@ -787,10 +839,9 @@ Relationship: ${SBOM_PACKAGE_SPDXID} CONTAINS NOASSERTION
 			"
 	)
 
-	file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
-	     "install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_PACKAGE_SPDXID}.cmake)
-"
-	)
+	get_property(_packages GLOBAL PROPERTY sbom_packages)
+	list(APPEND _packages "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_PACKAGE_SPDXID}.cmake")
+	set_property(GLOBAL PROPERTY sbom_packages "${_packages}")
 endfunction()
 
 # Add a reference to a package in an external file.
@@ -879,11 +930,9 @@ Relationship: ${SBOM_EXTERNAL_RELATIONSHIP}\")
 		"
 	)
 
-	file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
-	     "install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_EXTERNAL_SPDXID}.cmake)
-"
-	)
-
+	get_property(_relations GLOBAL PROPERTY sbom_relations)
+	list(APPEND _relations "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_EXTERNAL_SPDXID}.cmake")
+	set_property(GLOBAL PROPERTY sbom_relations "${_relations}")
 endfunction()
 
 # Append a LicenseRef-... license to the SBOM.
@@ -952,11 +1001,6 @@ ExtractedText: <text>\"
 \"</text>
 \")
 			"
-	)
-
-	file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
-	     "install(SCRIPT ${PROJECT_BINARY_DIR}/sbom/${SBOM_LICENSE_LICENSE}.cmake)
-"
 	)
 
 	list(APPEND _licenses "${SBOM_LICENSE_LICENSE}")
