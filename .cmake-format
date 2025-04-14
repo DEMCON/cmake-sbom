@@ -20,6 +20,8 @@ parse:
         PROJECT: 1
         SUPPLIER: 1
         SUPPLIER_URL: 1
+        DOWNLOAD_URL: 1
+        EXTREF: 1
     sbom_file:
       kwargs:
         FILENAME: 1
