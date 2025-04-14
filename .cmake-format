@@ -50,6 +50,12 @@ parse:
         RENAME: 1
         RELATIONSHIP: 1
         SPDXID: 1
+    sbom_license:
+      kwargs:
+        LICENSE: 1
+        NAME: 1
+        FILE: 1
+        TEXT: 1
     sbom_add:
       kwargs:
         FILENAME: 1
@@ -65,6 +71,9 @@ parse:
         EXTERNAL: 1
         RENAME: 1
         SUPPLIER: 1
+        NAME: 1
+        FILE: 1
+        TEXT: 1
 
 format:
   line_width: 100

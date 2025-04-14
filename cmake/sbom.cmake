@@ -948,7 +948,9 @@ ExtractedText: <text>\"
 				[=[${SBOM_LICENSE_TEXT}]=]
 			)
 
-			file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"</text>\")
+			file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
+\"</text>
+\")
 			"
 	)
 
