@@ -251,6 +251,7 @@ Created: ${NOW_UTC}
 
 PackageName: ${CMAKE_CXX_COMPILER_ID}
 SPDXID: SPDXRef-compiler
+ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
 PackageVersion: ${CMAKE_CXX_COMPILER_VERSION}
 PackageDownloadLocation: NOASSERTION
 PackageLicenseConcluded: NOASSERTION
