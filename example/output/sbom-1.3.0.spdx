@@ -1,16 +1,17 @@
 SPDXVersion: SPDX-2.3
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
-DocumentName: sbom-1
-DocumentNamespace: https://demcon.com/spdxdocs/example-project-1.1.2
+DocumentName: sbom-1.3.0
+DocumentNamespace: https://demcon.com/spdxdocs/example-project-1.3.0
 Creator: Organization: Demcon
 Creator: Tool: cmake-sbom
-CreatorComment: <text>This SPDX document was created from CMake 3.21.0, using cmake-sbom
+CreatorComment: <text>This SPDX document was created from CMake 3.22.1, using cmake-sbom
 from https://github.com/DEMCON/cmake-sbom</text>
-Created: 2024-05-23T21:45:34Z
+Created: 2025-04-15T14:48:03Z
 
 PackageName: GNU
 SPDXID: SPDXRef-compiler
+ExternalRef: SECURITY cpe23Type cpe:2.3:o:canonical:ubuntu_linux:-:*:*:*:*:*:x86_64:*
 PackageVersion: 11.4.0
 PackageDownloadLocation: NOASSERTION
 PackageLicenseConcluded: NOASSERTION
@@ -27,33 +28,31 @@ RelationshipComment: <text>SPDXRef-Package-example-project is built by compiler 
 PackageName: example-project
 SPDXID: SPDXRef-Package-example-project
 ExternalRef: SECURITY cpe23Type cpe:2.3:o:canonical:ubuntu_linux:-:*:*:*:*:*:x86_64:*
-ExternalRef: PACKAGE-MANAGER purl pkg:supplier/Demcon/example-project@1.1.2
-PackageVersion: 1.1.2
+ExternalRef: PACKAGE-MANAGER purl pkg:generic/example-project@e4cd56a6fc81b9d6ccc866f90c1abdf8cb769322?download_url=https://github.com/DEMCON/cmake-sbom/example
+PackageVersion: 1.3.0
 PackageSupplier: Organization: Demcon
-PackageDownloadLocation: NOASSERTION
+PackageDownloadLocation: https://github.com/DEMCON/cmake-sbom/example
 PackageLicenseConcluded: CC0-1.0
 PackageLicenseDeclared: CC0-1.0
-PackageCopyrightText: 2024 Demcon
+PackageCopyrightText: 2025 Demcon
 PackageHomePage: https://demcon.com
-PackageComment: <text>Built by CMake 3.21.0 with Debug configuration for Linux (x86_64)</text>
-PackageVerificationCode: e7587f0702027a367d76cd9b07918233ddd9c298
-BuiltDate: 2024-05-23T21:45:34Z
+PackageComment: <text>Built by CMake 3.22.1 with Debug configuration for Linux (x86_64)</text>
+PackageVerificationCode: da083bcc0fa57e507627b0d6fd1f0389b8f773fe
+BuiltDate: 2025-04-15T14:48:03Z
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package-example-project
 
 FileName: ./bin/example
 SPDXID: SPDXRef-bin-TARGET-FILE-NAME-example-0
 FileType: BINARY
-FileChecksum: SHA1: 7a9bd3c9f411cf5805e42bfaaea9fe965a2cfeeb
-LicenseConcluded: NOASSERTION
+FileChecksum: SHA1: a42cff9f8524032d524a7bb928857d5adab4ac33
+LicenseConcluded: CC0-1.0
 LicenseInfoInFile: NOASSERTION
 FileCopyrightText: NOASSERTION
-Relationship: SPDXRef-Package-example-project CONTAINS SPDXRef-bin-TARGET-FILE-NAME-example-0
 
 FileName: ./share/example/version.txt
 SPDXID: SPDXRef-share-example-version-txt-1
 FileType: DOCUMENTATION
-FileChecksum: SHA1: e3429934f4f3ac1c68dc8b2eef6c7df0aa7a7f9c
-LicenseConcluded: NOASSERTION
+FileChecksum: SHA1: 5e0ad8390d778d86a4a369e5ad6950036a8ebb86
+LicenseConcluded: CC0-1.0
 LicenseInfoInFile: NOASSERTION
 FileCopyrightText: NOASSERTION
-Relationship: SPDXRef-Package-example-project CONTAINS SPDXRef-share-example-version-txt-1
