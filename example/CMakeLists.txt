@@ -43,6 +43,7 @@ sbom_generate(
 	LICENSE CC0-1.0
 	SUPPLIER Demcon
 	SUPPLIER_URL https://demcon.com
+	DOWNLOAD_URL https://github.com/DEMCON/cmake-sbom/example
 )
 
 # If you want to check REUSE compliance.
@@ -64,13 +65,17 @@ target_link_libraries(example example-project-version)
 install(TARGETS example RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 # Mention the example binary in the SBOM.
-sbom_add(TARGET example)
+sbom_add(TARGET example LICENSE CC0-1.0)
 
 # Install some other documentation (the version in this case).
 install(FILES ${PROJECT_BINARY_DIR}/version.txt DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/example)
 
 # Mention the version file in the SBOM.
-sbom_add(FILENAME ${CMAKE_INSTALL_DATAROOTDIR}/example/version.txt FILETYPE DOCUMENTATION)
+sbom_add(
+	FILENAME ${CMAKE_INSTALL_DATAROOTDIR}/example/version.txt
+	FILETYPE DOCUMENTATION
+	LICENSE CC0-1.0
+)
 
 # Trigger SBOM finalization and verification.
 sbom_finalize()
