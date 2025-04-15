@@ -73,7 +73,7 @@ It will set the following variables in the current scope for the current project
 
 ``GIT_VERSION_TRIPLET``
    A major.minor.patch triplet, extracted from the current tag.
-   For this, the tag shall adhere to `Semantic Versioning 2.0.0 <semver>`_, optionally prefixed with ``v``.
+   For this, the tag shall adhere to `Semantic Versioning 2.0.0 <semver_>`_, optionally prefixed with ``v``.
 
 .. _semver: https://semver.org/
 
@@ -241,7 +241,7 @@ Generate the header of the SBOM, based on a standard template where the given de
    It may be omitted when the variable ``SBOM_SUPPLIER_URL`` is set or when any ``INPUT`` is given.
 
 ``OSV_QUERY``
-   Generate a JSON file for batch-querying the `OSV database <osv>`_.
+   Generate a JSON file for batch-querying the `OSV database <osv_>`_.
    The file is generated during CMake configure, based on successive ``sbom_add(PACKAGE)`` calls.
    Pass the generated file through the database by running:
    ``curl -d @<filename> "https://api.osv.dev/v1/querybatch"``
