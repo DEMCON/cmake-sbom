@@ -22,6 +22,7 @@ parse:
         SUPPLIER_URL: 1
         DOWNLOAD_URL: 1
         EXTREF: 1
+        OSV_QUERY: 1
     sbom_file:
       kwargs:
         FILENAME: 1
@@ -45,6 +46,8 @@ parse:
         RELATIONSHIP: 1
         SPDXID: 1
         SUPPLIER: 1
+        PURL: 1
+        COMMIT: 1
     sbom_external:
       kwargs:
         EXTERNAL: 1
@@ -76,6 +79,14 @@ parse:
         NAME: 1
         FILE: 1
         TEXT: 1
+        COMMIT: 1
+    osv_add:
+      kwargs:
+        PACKAGE: 1
+        VERSION: 1
+        COMMIT: 1
+        ECOSYSTEM: 1
+        PURL: 1
 
 format:
   line_width: 100
