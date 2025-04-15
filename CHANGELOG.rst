@@ -23,7 +23,12 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 Added
 `````
 
-...
+- ``sbom_add(LICENSE)`` to add a `LicenseRef-...` license to the SBOM.
+
+Fixed
+`````
+
+- Fix section ordering in SBOM.
 
 .. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.2.0...HEAD
 
