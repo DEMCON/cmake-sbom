@@ -24,6 +24,7 @@ Added
 `````
 
 - ``sbom_add(LICENSE)`` to add a `LicenseRef-...` license to the SBOM.
+- Generate a batch-querying JSON file for the OSV database.
 
 Fixed
 `````

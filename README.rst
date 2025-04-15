@@ -193,6 +193,7 @@ Generate the header of the SBOM, based on a standard template where the given de
       [PROJECT <name>]
       [SUPPLIER <name>]
       [SUPPLIER_URL <name>]
+      [OSV_QUERY <filename>]
    )
 
 ``OUTPUT``
@@ -238,6 +239,14 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``SUPPLIER_URL``
    Supplier home page.
    It may be omitted when the variable ``SBOM_SUPPLIER_URL`` is set or when any ``INPUT`` is given.
+
+``OSV_QUERY``
+   Generate a JSON file for batch-querying the `OSV database <osv>`_.
+   The file is generated during CMake configure, based on successive ``sbom_add(PACKAGE)`` calls.
+   Pass the generated file through the database by running:
+   ``curl -d @<filename> "https://api.osv.dev/v1/querybatch"``
+
+.. _osv: https://osv.dev/
 
 
 
@@ -329,6 +338,7 @@ Add something to the SBOM.
       [SPDXID <id>]
       [SUPPLIER <name>]
       [VERSION <version>]
+      [COMMIT <commit>]
    )
 
 ``PACKAGE``
@@ -353,6 +363,9 @@ Add something to the SBOM.
 
 ``VERSION``
    Version of the package.
+
+``COMMIT``
+   Git commit hash.
 
 .. code:: cmake
 

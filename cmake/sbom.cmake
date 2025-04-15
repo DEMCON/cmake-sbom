@@ -115,6 +115,7 @@ function(sbom_generate)
 	    NAMESPACE
 	    DOWNLOAD_URL
 	    EXTREF
+	    OSV_QUERY
 	)
 	set(multiValueArgs INPUT)
 	cmake_parse_arguments(
@@ -333,6 +334,8 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 	set_property(GLOBAL PROPERTY sbom_packages "")
 	set_property(GLOBAL PROPERTY sbom_licenses "")
 	set_property(GLOBAL PROPERTY sbom_relations "")
+	set_property(GLOBAL PROPERTY sbom_osv_file "${SBOM_GENERATE_OSV_QUERY}")
+	set_property(GLOBAL PROPERTY sbom_osv "")
 
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
 
@@ -505,12 +508,97 @@ function(sbom_finalize)
 	# Workaround for pre-CMP0082.
 	add_subdirectory(${PROJECT_BINARY_DIR}/sbom ${PROJECT_BINARY_DIR}/sbom)
 
+	get_property(_osv GLOBAL PROPERTY sbom_osv)
+	get_property(_osv_file GLOBAL PROPERTY sbom_osv_file)
+	if(NOT "${_osv}" STREQUAL "" AND NOT "${_osv_file}" STREQUAL "")
+		file(
+			WRITE "${_osv_file}"
+			"{
+	\"queries\": [
+${_osv}
+	]
+}
+"
+		)
+	endif()
+
 	# Mark finalized.
 	set(SBOM_FILENAME
 	    "${_sbom}"
 	    PARENT_SCOPE
 	)
 	set_property(GLOBAL PROPERTY sbom_project "")
+endfunction()
+
+# Append a package to the OSV JSON output file.
+function(osv_add)
+	set(options)
+	set(oneValueArgs PACKAGE VERSION COMMIT ECOSYSTEM PURL)
+	set(multiValueArgs)
+	cmake_parse_arguments(OSV_ADD "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+	if(OSV_ADD_UNPARSED_ARGUMENTS)
+		message(FATAL_ERROR "Unknown arguments: ${OSV_ADD_UNPARSED_ARGUMENTS}")
+	endif()
+
+	if("${OSV_ADD_PACKAGE}" STREQUAL "")
+		message(FATAL_ERROR "Missing PACKAGE argument")
+	endif()
+
+	if("${OSV_ADD_VERSION}" STREQUAL "" AND "${OSV_ADD_COMMIT}" STREQUAL "")
+		message(FATAL_ERROR "Missing VERSION or COMMIT argument")
+	endif()
+
+	if("${OSV_ADD_ECOSYSTEM}" STREQUAL ""
+	   AND "${OSV_ADD_PURL}" STREQUAL ""
+	   AND "${OSV_ADD_COMMIT}" STREQUAL ""
+	)
+		message(FATAL_ERROR "Missing ECOSYSTEM or PURL argument")
+	endif()
+
+	set(query "		{
+			"
+	)
+
+	if(NOT "${OSV_ADD_COMMIT}" STREQUAL "")
+		set(query "${query}\"commit\": \"${OSV_ADD_COMMIT}\"")
+	else()
+		set(query "${query}\"version\": \"${OSV_ADD_VERSION}\"")
+	endif()
+
+	if("${OSV_ADD_COMMIT}" STREQUAL "" OR NOT "${OSV_ADD_PURL}" STREQUAL "")
+		set(query
+		    "${query},
+			\"package\": {
+				"
+		)
+
+		if(NOT "${OSV_ADD_PURL}" STREQUAL "")
+			set(query "${query}\"purl\": \"${OSV_ADD_PURL}\"")
+		else()
+			set(query "${query}\"name\": \"${OSV_ADD_PACKAGE}\",
+				\"ecosystem\": \"${OSV_ADD_ECOSYSTEM}\""
+			)
+		endif()
+
+		set(query "${query}
+			}"
+		)
+	endif()
+
+	set(query "${query}
+		}"
+	)
+
+	get_property(_osv GLOBAL PROPERTY sbom_osv)
+	if("${_osv}" STREQUAL "")
+		set(_osv "${query}")
+	else()
+		set(_osv "${_osv},
+${query}"
+		)
+	endif()
+
+	set_property(GLOBAL PROPERTY sbom_osv "${_osv}")
 endfunction()
 
 # Append a file to the SBOM. Use this after calling sbom_generate().
@@ -741,6 +829,7 @@ function(sbom_package)
 	set(oneValueArgs
 	    PACKAGE
 	    VERSION
+	    COMMIT
 	    LICENSE
 	    DOWNLOAD_LOCATION
 	    RELATIONSHIP
@@ -763,6 +852,23 @@ function(sbom_package)
 		set(SBOM_PACKAGE_DOWNLOAD_LOCATION NOASSERTION)
 	endif()
 
+	set(_purl "")
+	foreach(_e IN LISTS SBOM_PACKAGE_EXTREF)
+		if("${_e}" MATCHES "^PACKAGE-MANAGER purl ")
+			string(REGEX REPLACE "^PACKAGE-MANAGER purl " "" _purl "${_e}")
+			break()
+		endif()
+	endforeach()
+
+	if(NOT "${_purl}" STREQUAL "" OR NOT "${SBOM_PACKAGE_COMMIT}" STREQUAL "")
+		osv_add(
+			PACKAGE ${SBOM_PACKAGE_PACKAGE}
+			COMMIT ${SBOM_PACKAGE_COMMIT}
+			VERSION ${SBOM_PACKAGE_VERSION}
+			PURL "${_purl}"
+		)
+	endif()
+
 	sbom_spdxid(
 		VARIABLE SBOM_PACKAGE_SPDXID
 		CHECK "${SBOM_PACKAGE_SPDXID}"
@@ -777,7 +883,17 @@ function(sbom_package)
 	set(_fields)
 
 	if("${SBOM_PACKAGE_VERSION}" STREQUAL "")
-		set(SBOM_PACKAGE_VERSION "unknown")
+		if(NOT "${SBOM_PACKAGE_COMMIT}" STREQUAL "")
+			set(SBOM_PACKAGE_VERSION "${SBOM_PACKAGE_COMMIT}")
+		else()
+			set(SBOM_PACKAGE_VERSION "unknown")
+		endif()
+	endif()
+
+	if(NOT "${SBOM_PACKAGE_COMMIT}" STREQUAL "")
+		set(_fields "${_fields}
+PackageSourceInfo: Commit:${SBOM_PACKAGE_COMMIT}"
+		)
 	endif()
 
 	if("${SBOM_PACKAGE_SUPPLIER}" STREQUAL "")
