@@ -23,6 +23,18 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 Added
 `````
 
+...
+
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.3.0...HEAD
+
+
+
+`1.3.0`_ - 2025-04-17
+---------------------
+
+Added
+`````
+
 - ``sbom_add(LICENSE)`` to add a `LicenseRef-...` license to the SBOM.
 - Generate a batch-querying JSON file for the OSV database.
 
@@ -31,7 +43,7 @@ Fixed
 
 - Fix section ordering in SBOM.
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.2.0...HEAD
+.. _1.3.0: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.3.0
 
 
 
