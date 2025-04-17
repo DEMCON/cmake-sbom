@@ -226,7 +226,9 @@ Generate the header of the SBOM, based on a standard template where the given de
 
 ``EXTREF``
    External reference regarding package manager information.
-   Refer to the `SPDX`_ specification for details.
+   Refer to the `SPDX <SPDX_extref_>`_ specification for details.
+
+.. _SPDX_extref: https://spdx.github.io/spdx-spec/v2.3/package-information/#721-external-reference-field
 
 ``PROJECT``
    Project name.
@@ -276,7 +278,9 @@ Add something to the SBOM.
 
 ``FILETYPE``
    The SPDX File Type.
-   Refer to the `SPDX specification <SPDX_>`_.
+   Refer to the `SPDX specification <SPDX_filetype_>`_.
+
+.. _SPDX_filetype: https://spdx.github.io/spdx-spec/v2.3/file-information/#83-file-type-field
 
 ``LICENSE``
    License of the file.
@@ -285,7 +289,9 @@ Add something to the SBOM.
 ``RELATIONSHIP``
    A relationship definition related to this file.
    The string ``@SBOM_LAST_SPDXID@`` will be replaced by the SPDXID that is used for this SBOM item.
-   Refer to the `SPDX specification <SPDX_>`_.
+   Refer to the `SPDX specification <SPDX_rel_>`_.
+
+.. _SPDX_rel: https://spdx.github.io/spdx-spec/v2.3/relationships-between-SPDX-elements/
 
 ``SPDXID``
    The ID to use for identifier generation.
@@ -352,7 +358,7 @@ Add something to the SBOM.
 
 ``EXTREF``
    External references, such as security or package manager information.
-   Refer to the `SPDX`_ specification for details.
+   Refer to the `SPDX <SPDX_extref_>`_ specification for details.
 
 ``LICENSE``
    License of the package.
