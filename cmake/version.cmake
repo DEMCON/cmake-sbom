@@ -61,6 +61,9 @@ function(version_extract)
 			if(NOT "$ENV{CI_COMMIT_BRANCH}" STREQUAL "")
 				# Probably a detached head running on a gitlab runner
 				set(version_git_branch "$ENV{CI_COMMIT_BRANCH}")
+			elseif(NOT "$ENV{CHANGE_BRANCH}" STREQUAL "")
+				# Probably a detached head running on a jenkins agent
+				set(version_git_branch "$ENV{CHANGE_BRANCH}")
 			endif()
 		endif()
 
@@ -77,6 +80,9 @@ function(version_extract)
 			if(NOT "$ENV{CI_COMMIT_TAG}" STREQUAL "")
 				# Probably a detached head running on a gitlab runner
 				set(version_git_tag "$ENV{CI_COMMIT_TAG}")
+			elseif(NOT "$ENV{TAG_NAME}" STREQUAL "")
+				# Probably a detached head running on a jenkins agent
+				set(version_git_tag "$ENV{TAG_NAME}")
 			endif()
 		endif()
 
