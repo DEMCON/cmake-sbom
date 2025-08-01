@@ -1,8 +1,10 @@
-# SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
 #
 # SPDX-License-Identifier: MIT
 
 @TEST_PREAMBLE@
+
+enable_language(C)
 
 include(sbom)
 

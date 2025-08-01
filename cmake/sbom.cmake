@@ -6,7 +6,6 @@ if(COMMAND sbom_generate)
 	return()
 endif()
 
-include(GNUInstallDirs)
 include(${CMAKE_CURRENT_LIST_DIR}/version.cmake)
 
 # Common Platform Enumeration: https://nvd.nist.gov/products/cpe
@@ -21,9 +20,9 @@ if(WIN32)
 		set(_arch "arm64")
 	elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "X86")
 		set(_arch "x86")
-	elseif(CMAKE_CXX_COMPILER MATCHES "64")
+	elseif(CMAKE_CXX_COMPILER MATCHES "64" OR CMAKE_C_COMPILER MATCHES "64")
 		set(_arch "x64")
-	elseif(CMAKE_CXX_COMPILER MATCHES "86")
+	elseif(CMAKE_CXX_COMPILER MATCHES "86" OR CMAKE_C_COMPILER MATCHES "86")
 		set(_arch "x86")
 	else()
 		set(_arch "*")
@@ -237,6 +236,35 @@ function(sbom_generate)
 			get_filename_component(doc_name "${SBOM_GENERATE_OUTPUT}" NAME_WLE)
 		endif()
 
+		set(compilers "")
+		get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+
+		foreach(lang IN LISTS languages)
+			if(NOT "${CMAKE_${lang}_COMPILER_ID}" STREQUAL ""
+			   AND NOT "${CMAKE_${lang}_COMPILER_VERSION}" STREQUAL ""
+			)
+				set(compilers
+				    "${compilers}
+
+PackageName: ${CMAKE_${lang}_COMPILER_ID} (${lang} compiler)
+SPDXID: SPDXRef-compiler-${lang}
+ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
+PackageVersion: ${CMAKE_${lang}_COMPILER_VERSION}
+PackageDownloadLocation: NOASSERTION
+PackageLicenseConcluded: NOASSERTION
+PackageLicenseDeclared: NOASSERTION
+PackageCopyrightText: NOASSERTION
+PackageSupplier: Organization: Anonymous
+FilesAnalyzed: false
+PackageSummary: <text>The compiler as identified by CMake, running on ${CMAKE_HOST_SYSTEM_NAME} (${CMAKE_HOST_SYSTEM_PROCESSOR})</text>
+PrimaryPackagePurpose: APPLICATION
+Relationship: SPDXRef-compiler-${lang} CONTAINS NOASSERTION
+Relationship: SPDXRef-compiler-${lang} BUILD_DEPENDENCY_OF SPDXRef-${SBOM_GENERATE_PROJECT}
+RelationshipComment: <text>SPDXRef-${SBOM_GENERATE_PROJECT} is built by compiler ${CMAKE_${lang}_COMPILER_ID} (${CMAKE_${lang}_COMPILER}) version ${CMAKE_${lang}_COMPILER_VERSION}</text>"
+				)
+			endif()
+		endforeach()
+
 		file(
 			GENERATE
 			OUTPUT "${_f}"
@@ -250,23 +278,7 @@ Creator: Organization: ${SBOM_GENERATE_SUPPLIER}
 Creator: Tool: cmake-sbom
 CreatorComment: <text>This SPDX document was created from CMake ${CMAKE_VERSION}, using cmake-sbom
 from https://github.com/DEMCON/cmake-sbom</text>
-Created: ${NOW_UTC}
-
-PackageName: ${CMAKE_CXX_COMPILER_ID}
-SPDXID: SPDXRef-compiler
-ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
-PackageVersion: ${CMAKE_CXX_COMPILER_VERSION}
-PackageDownloadLocation: NOASSERTION
-PackageLicenseConcluded: NOASSERTION
-PackageLicenseDeclared: NOASSERTION
-PackageCopyrightText: NOASSERTION
-PackageSupplier: Organization: Anonymous
-FilesAnalyzed: false
-PackageSummary: <text>The compiler as identified by CMake, running on ${CMAKE_HOST_SYSTEM_NAME} (${CMAKE_HOST_SYSTEM_PROCESSOR})</text>
-PrimaryPackagePurpose: APPLICATION
-Relationship: SPDXRef-compiler CONTAINS NOASSERTION
-Relationship: SPDXRef-compiler BUILD_DEPENDENCY_OF SPDXRef-${SBOM_GENERATE_PROJECT}
-RelationshipComment: <text>SPDXRef-${SBOM_GENERATE_PROJECT} is built by compiler ${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER}) version ${CMAKE_CXX_COMPILER_VERSION}</text>
+Created: ${NOW_UTC}${compilers}
 
 PackageName: ${PROJECT_NAME}
 SPDXID: SPDXRef-${SBOM_GENERATE_PROJECT}
@@ -697,6 +709,18 @@ function(sbom_target)
 
 	if("${SBOM_TARGET_TARGET}" STREQUAL "")
 		message(FATAL_ERROR "Missing TARGET argument")
+	endif()
+
+	get_property(languages GLOBAL PROPERTY ENABLED_LANGUAGES)
+	if(NOT "${languages}" STREQUAL "" AND NOT "${languages}" STREQUAL "NONE")
+		include(GNUInstallDirs)
+	endif()
+
+	if(NOT CMAKE_INSTALL_BINDIR)
+		message(FATAL_ERROR "Please enable a language or set CMAKE_INSTALL_BINDIR")
+	endif()
+	if(NOT CMAKE_INSTALL_LIBDIR)
+		message(FATAL_ERROR "Please enable a language or set CMAKE_INSTALL_LIBDIR")
 	endif()
 
 	get_target_property(_type ${SBOM_TARGET_TARGET} TYPE)
