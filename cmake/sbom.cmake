@@ -751,6 +751,14 @@ function(sbom_target)
 				FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
 			)
 		endif()
+	elseif("${_type}" STREQUAL "MODULE_LIBRARY")
+		sbom_file(
+			FILENAME
+				${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
+			FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
+		)
+	elseif("${_type}" STREQUAL "INTERFACE_LIBRARY")
+		# Silently ignore.
 	else()
 		message(FATAL_ERROR "Unsupported target type ${_type}")
 	endif()

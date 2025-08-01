@@ -5,6 +5,7 @@
 @TEST_PREAMBLE@
 
 enable_language(C)
+include(GNUInstallDirs)
 
 include(sbom)
 
@@ -28,6 +29,14 @@ sbom_add(TARGET libfoo)
 add_library(libfoo2 SHARED ${CMAKE_CURRENT_BINARY_DIR}/foo.c)
 install(TARGETS libfoo2 ARCHIVE)
 sbom_add(TARGET libfoo2)
+
+add_library(libfoo3 MODULE ${CMAKE_CURRENT_BINARY_DIR}/foo.c)
+install(TARGETS libfoo3 LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+sbom_add(TARGET libfoo3)
+
+add_library(libfoo4 INTERFACE)
+install(TARGETS libfoo4)
+sbom_add(TARGET libfoo4)
 
 # Headers are not included. You may want to add sbom_add(DIRECTORY include FILETYPE SOURCE).
 
