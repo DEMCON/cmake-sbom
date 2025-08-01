@@ -25,6 +25,11 @@ Added
 
 ...
 
+Fixed
+`````
+
+- #74: Handling enabled languages other than CXX.
+
 .. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.3.0...HEAD
 
 
