@@ -2,11 +2,11 @@
 #
 # SPDX-License-Identifier: MIT
 
+cmake_minimum_required(VERSION 3.10)
+
 if(COMMAND sbom_generate)
 	return()
 endif()
-
-include(${CMAKE_CURRENT_LIST_DIR}/version.cmake)
 
 # Common Platform Enumeration: https://nvd.nist.gov/products/cpe
 #
@@ -109,6 +109,7 @@ function(sbom_generate)
 	    LICENSE
 	    COPYRIGHT
 	    PROJECT
+	    VERSION
 	    SUPPLIER
 	    SUPPLIER_URL
 	    NAMESPACE
@@ -126,9 +127,28 @@ function(sbom_generate)
 
 	string(TIMESTAMP NOW_UTC UTC)
 
+	if("${SBOM_GENERATE_VERSION}" STREQUAL "")
+		if(NOT "${PROJECT_VERSION}" STREQUAL "")
+			# Use project version as default.
+			set(SBOM_GENERATE_VERSION "${PROJECT_VERSION}")
+		elseif(NOT "${GIT_VERSION}" STREQUAL "")
+			# Fallback to detected Git version.
+			set(SBOM_GENERATE_VERSION "${GIT_VERSION}")
+		else()
+			message(
+				FATAL_ERROR
+					"Specify VERSION, or use project(VERSION ...) or include(git_version) before"
+			)
+		endif()
+	endif()
+
+	string(REGEX REPLACE "[^-a-zA-Z0-9_.]+" "+" SBOM_GENERATE_VERSION_PATH
+			     "${SBOM_GENERATE_VERSION}"
+	)
+
 	if("${SBOM_GENERATE_OUTPUT}" STREQUAL "")
 		set(SBOM_GENERATE_OUTPUT
-		    "\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${PROJECT_NAME}-sbom-${GIT_VERSION_PATH}.spdx"
+		    "\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${PROJECT_NAME}-sbom-${SBOM_GENERATE_VERSION_PATH}.spdx"
 		)
 	endif()
 
@@ -180,11 +200,13 @@ function(sbom_generate)
 
 	if("${SBOM_GENERATE_NAMESPACE}" STREQUAL "")
 		set(SBOM_GENERATE_NAMESPACE
-		    "${SBOM_GENERATE_SUPPLIER_URL}/spdxdocs/${PROJECT_NAME}-${GIT_VERSION}"
+		    "${SBOM_GENERATE_SUPPLIER_URL}/spdxdocs/${PROJECT_NAME}-${SBOM_GENERATE_VERSION}"
 		)
 	endif()
 
-	if("${SBOM_GENERATE_EXTREF}" STREQUAL "")
+	if("${SBOM_GENERATE_EXTREF}" STREQUAL "" AND NOT "${GIT_HASH}" STREQUAL "")
+		# Make sure to either set GIT_HASH or include(git_version) before.
+
 		string(LENGTH ${GIT_HASH} _len)
 
 		if(NOT "${SBOM_GENERATE_DOWNLOAD_URL}" STREQUAL ""
@@ -202,6 +224,13 @@ function(sbom_generate)
 			    "PERSISTENT-ID gitoid gitoid:commit:sha1:${GIT_HASH}"
 			)
 		endif()
+	endif()
+
+	set(extref)
+	if(NOT "${SBOM_GENERATE_EXTREF}" STREQUAL "")
+		set(extref "
+ExternalRef: ${SBOM_GENERATE_EXTREF}"
+		)
 	endif()
 
 	string(REGEX REPLACE "[^A-Za-z0-9.]+" "-" SBOM_GENERATE_PROJECT "${SBOM_GENERATE_PROJECT}")
@@ -282,9 +311,8 @@ Created: ${NOW_UTC}${compilers}
 
 PackageName: ${PROJECT_NAME}
 SPDXID: SPDXRef-${SBOM_GENERATE_PROJECT}
-ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
-ExternalRef: ${SBOM_GENERATE_EXTREF}
-PackageVersion: ${GIT_VERSION}
+ExternalRef: SECURITY cpe23Type ${SBOM_CPE}${extref}
+PackageVersion: ${SBOM_GENERATE_VERSION}
 PackageSupplier: Organization: ${SBOM_GENERATE_SUPPLIER}
 PackageDownloadLocation: ${SBOM_GENERATE_DOWNLOAD_URL}
 PackageLicenseConcluded: ${SBOM_GENERATE_LICENSE}
@@ -752,10 +780,8 @@ function(sbom_target)
 			)
 		endif()
 	elseif("${_type}" STREQUAL "MODULE_LIBRARY")
-		sbom_file(
-			FILENAME
-				${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
-			FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
+		sbom_file(FILENAME ${CMAKE_INSTALL_LIBDIR}/$<TARGET_FILE_NAME:${SBOM_TARGET_TARGET}>
+			  FILETYPE BINARY ${SBOM_TARGET_UNPARSED_ARGUMENTS}
 		)
 	elseif("${_type}" STREQUAL "INTERFACE_LIBRARY")
 		# Silently ignore.

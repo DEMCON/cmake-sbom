@@ -20,7 +20,9 @@ function(test name)
 	set(TEST_PREAMBLE
 	    "cmake_minimum_required(VERSION 3.10)
 cmake_policy(VERSION 3.10)
-project(${name} LANGUAGES NONE)"
+project(${name} LANGUAGES NONE)
+include(git_version)
+"
 	)
 
 	configure_file("${name}.cmake" "${_dir}/src/CMakeLists.txt" @ONLY)
@@ -55,3 +57,4 @@ test(external)
 test(C)
 test(CXX)
 test(C_CXX)
+test(version)

@@ -12,6 +12,7 @@ project(cmake-sbom)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
+include(git_version)
 include(sbom)
 
 reuse_lint()
