@@ -24,12 +24,19 @@ Added
 `````
 
 - Add ``sbom_target()`` support for ``MODULE_LIBRARY`` and ``INTERFACE_LIBRARY`` (#63).
-- Add ``COPYRIGHT`` argument to ``sbom_add(PACKAGE)``
+- Add ``COPYRIGHT`` argument to ``sbom_add(PACKAGE)``.
+- Add ``VERSION`` to ``sbom_generate()``.
 
 Fixed
 `````
 
 - #74: Handling enabled languages other than CXX.
+
+Changed
+```````
+
+- Renamed ``version.cmake`` to ``git_version.cmake`` (and marked the old file as deprecated).
+  This makes using Git optional, such that it is more usable in other environments (#79).
 
 .. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.3.0...HEAD
 

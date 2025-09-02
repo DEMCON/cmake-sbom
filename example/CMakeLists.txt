@@ -32,7 +32,7 @@ endif()
 # SBOM setup
 
 # Include and generation version information.
-include(version)
+include(git_version)
 
 include(sbom)
 
