@@ -1,7 +1,7 @@
 ﻿
 
 ..
-   SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+   SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
    
    SPDX-License-Identifier: CC-BY-4.0
 
@@ -53,7 +53,7 @@ Version extraction
 ------------------
 
 To extract the version from Git, make sure that the ``cmake`` directory is in your ``CMAKE_MODULE_PATH``.
-Then call ``include(version)`` from you ``CMakeLists.txt``.
+Then call ``include(git_version)`` from you ``CMakeLists.txt``.
 It will set the following variables in the current scope for the current project:
 
 ``GIT_HASH``
@@ -103,6 +103,11 @@ Additionally, it creates:
 ``${PROJECT_NAME}-version`` static library target
    When linking to this target, one can access the version information in C/C++ by including the ``<${PROJECT_NAME}-version.h>`` header file.
    The file is generated in ``${PROJECT_BINARY_DIR}/include``.
+
+Note that the current branch and/or tag may be unknown to Git when building on a CI server like GitLab or Jenkins.
+In that case, you may want to provide this information from your CI server to CMake by setting the variables ``GIT_VERSION_BRANCH`` and/or ``GIT_VERSION_TAG`` on the command line.
+
+When ``${PROJECT_VERSION}`` is empty and a valid Semantic Versioning tag is detected, it will set the project version variables to the detected Git version.
 
 
 
@@ -191,6 +196,7 @@ Generate the header of the SBOM, based on a standard template where the given de
       [DOWNLOAD_URL <URL>]
       [EXTREF <ref>]
       [PROJECT <name>]
+      [VERSION <version>]
       [SUPPLIER <name>]
       [SUPPLIER_URL <name>]
       [OSV_QUERY <filename>]
@@ -218,7 +224,7 @@ Generate the header of the SBOM, based on a standard template where the given de
 
 ``NAMESPACE``
    Document namespace.
-   If not specified, default to a URL based on ``SUPPLIER_URL``, ``PROJECT_NAME`` and ``GIT_VERSION``.
+   If not specified, default to a URL based on ``SUPPLIER_URL``, ``PROJECT_NAME`` and ``VERSION``.
 
 ``DOWNLOAD_URL``
    Download URL for the software.
@@ -233,6 +239,10 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``PROJECT``
    Project name.
    Defaults to ``PROJECT_NAME``.
+
+``VERSION``
+   Project version.
+   Defaults first to ``PROJECT_VERSION`` when set, or ``GIT_VERSION`` otherwise.
 
 ``SUPPLIER``
    Supplier name.
@@ -551,7 +561,12 @@ To use this library, perform the following steps:
 
       $ python3 -m pip install -r path/to/cmake-sbom/dist/common/requirements.txt
 
-4. In your top-level ``CMakeLists.txt``, somwhere after ``project(...)``, prepare the SBOM:
+4. Optional: in your top-level ``CMakeLists.txt``, determine the version of your software, by either:
+
+   - pass a ``VERSION`` to your ``project(...)``; or
+   - call ``include(git_version)`` after ``project(...)`` but before ``include(sbom)`` (see below).
+
+5. In your top-level ``CMakeLists.txt``, somewhere after ``project(...)``, prepare the SBOM:
 
    .. code:: cmake
 
@@ -560,7 +575,7 @@ To use this library, perform the following steps:
       # Add sbom_add() ...
       sbom_finalize()
 
-5. Build *and install* your project, such as:
+6. Build *and install* your project, such as:
 
    .. code:: bash
 
