@@ -343,6 +343,7 @@ Add something to the SBOM.
       [RELATIONSHIP <string>]
       [SPDXID <id>]
       [SUPPLIER <name>]
+      [COPYRIGHT <copyright>]
       [VERSION <version>]
       [COMMIT <commit>]
    )
@@ -366,6 +367,10 @@ Add something to the SBOM.
 
 ``SUPPLIER``
    Package supplier, which can be ``Person: name (email)``, or ``Organization: name (email)``.
+
+``COPYRIGHT``
+   Copyright information of the package.
+   Defaults to ``NOASSERTION`` when not specified.
 
 ``VERSION``
    Version of the package.
