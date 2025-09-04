@@ -867,6 +867,7 @@ function(sbom_package)
 	    RELATIONSHIP
 	    SPDXID
 	    SUPPLIER
+	    COPYRIGHT
 	)
 	set(multiValueArgs EXTREF)
 	cmake_parse_arguments(
@@ -932,6 +933,10 @@ PackageSourceInfo: Commit:${SBOM_PACKAGE_COMMIT}"
 		set(SBOM_PACKAGE_SUPPLIER "Person: Anonymous")
 	endif()
 
+	if("${SBOM_PACKAGE_COPYRIGHT}" STREQUAL "")
+		set(SBOM_PACKAGE_COPYRIGHT NOASSERTION)
+	endif()
+
 	if(NOT "${SBOM_PACKAGE_LICENSE}" STREQUAL "")
 		set(_fields "${_fields}
 PackageLicenseConcluded: ${SBOM_PACKAGE_LICENSE}"
@@ -979,7 +984,7 @@ SPDXID: ${SBOM_PACKAGE_SPDXID}
 ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
 PackageDownloadLocation: ${SBOM_PACKAGE_DOWNLOAD_LOCATION}
 PackageLicenseDeclared: NOASSERTION
-PackageCopyrightText: NOASSERTION
+PackageCopyrightText: ${SBOM_PACKAGE_COPYRIGHT}
 PackageVersion: ${SBOM_PACKAGE_VERSION}
 PackageSupplier: ${SBOM_PACKAGE_SUPPLIER}
 FilesAnalyzed: false${_fields}

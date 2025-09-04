@@ -24,6 +24,7 @@ Added
 `````
 
 - Add ``sbom_target()`` support for ``MODULE_LIBRARY`` and ``INTERFACE_LIBRARY`` (#63).
+- Add ``COPYRIGHT`` argument to ``sbom_add(PACKAGE)``
 
 Fixed
 `````
