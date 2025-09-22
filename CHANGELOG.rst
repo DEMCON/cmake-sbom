@@ -37,6 +37,8 @@ Changed
 
 - Renamed ``version.cmake`` to ``git_version.cmake`` (and marked the old file as deprecated).
   This makes using Git optional, such that it is more usable in other environments (#79).
+- ``<project>_version.h``'s ``<project>_TIMESTAMP`` does not use ``VERSION_TIMESTAMP`` (build timestamp) anymore, but ``GIT_TIMESTAMP`` (commit timestamp).
+  This way, the build is more reproducable (#79).
 
 .. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.3.0...HEAD
 
