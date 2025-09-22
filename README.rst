@@ -105,7 +105,7 @@ Additionally, it creates:
    The file is generated in ``${PROJECT_BINARY_DIR}/include``.
 
 Note that the current branch and/or tag may be unknown to Git when building on a CI server like GitLab or Jenkins.
-In that case, you may want to provide this information from your CI server to CMake by setting the variables ``GIT_VERSION_BRANCH`` and/or ``GIT_VERSION_TAG`` on the command line.
+In that case, you may want to provide this information from your CI server to CMake by setting the variables ``GIT_VERSION_BRANCH`` and/or ``GIT_VERSION_TAG`` on the command line or in the environment.
 
 When ``${PROJECT_VERSION}`` is empty and a valid Semantic Versioning tag is detected, it will set the project version variables to the detected Git version.
 
