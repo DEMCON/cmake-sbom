@@ -23,6 +23,18 @@ The format is based on `Keep a Changelog`_, and this project adheres to `Semanti
 Added
 `````
 
+...
+
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.4.0...HEAD
+
+
+
+`1.4.0`_ - 2025-09-22
+---------------------
+
+Added
+`````
+
 - Add ``sbom_target()`` support for ``MODULE_LIBRARY`` and ``INTERFACE_LIBRARY`` (#63).
 - Add ``COPYRIGHT`` argument to ``sbom_add(PACKAGE)``.
 - Add ``VERSION`` to ``sbom_generate()``.
@@ -40,7 +52,7 @@ Changed
 - ``<project>_version.h``'s ``<project>_TIMESTAMP`` does not use ``VERSION_TIMESTAMP`` (build timestamp) anymore, but ``GIT_TIMESTAMP`` (commit timestamp).
   This way, the build is more reproducable (#79).
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.3.0...HEAD
+.. _1.4.0: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.4.0
 
 
 
