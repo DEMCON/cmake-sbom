@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
-# This file extracts version information from Git and passes it to GIT_VERSION_* variables.
-# It assumes Semantic Versioning for tags.
+# This file extracts version information from Git and passes it to GIT_VERSION_* variables. It
+# assumes Semantic Versioning for tags.
 #
 # You can override the following when the auto-detect goes wrong:
 #
@@ -126,6 +126,13 @@ function(version_extract)
 				endif()
 			endforeach()
 		endif()
+
+		execute_process(
+			COMMAND ${GIT_EXECUTABLE} show --no-patch --format=%ci
+			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+			OUTPUT_VARIABLE GIT_TIMESTAMP
+			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
+		)
 	else()
 		message(WARNING "Git not found")
 	endif()
@@ -263,6 +270,10 @@ function(version_extract)
 	    "${GIT_VERSION_SUFFIX}"
 	    PARENT_SCOPE
 	)
+	set(GIT_TIMESTAMP
+	    "${GIT_TIMESTAMP}"
+	    PARENT_SCOPE
+	)
 
 	if(VERSION_EXTRACT_VERBOSE)
 		version_show()
@@ -272,13 +283,6 @@ endfunction()
 # Generate version files and a static library based on the extract version information of the
 # current project.
 function(version_generate)
-	string(TIMESTAMP VERSION_TIMESTAMP "%Y-%m-%d %H:%M:%S")
-	set(VERSION_TIMESTAMP "${VERSION_TIMESTAMP}")
-	set(VERSION_TIMESTAMP
-	    "${VERSION_TIMESTAMP}"
-	    PARENT_SCOPE
-	)
-
 	set(GIT_VERSION_HEADER "/* This is a generated file. Do not edit. */")
 
 	string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UC)

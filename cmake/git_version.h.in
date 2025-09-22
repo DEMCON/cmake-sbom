@@ -1,7 +1,7 @@
 // clang-format off
 #ifndef @PROJECT_NAME_UC@_VERSION_H
 #define @PROJECT_NAME_UC@_VERSION_H
-// SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+// SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
 //
 // SPDX-License-Identifier: CC0-1.0
 
@@ -9,7 +9,7 @@
 
 #define @PROJECT_NAME_UC@_VERSION_HASH    "@GIT_HASH@"
 #define @PROJECT_NAME_UC@_VERSION         "@GIT_VERSION@"
-#define @PROJECT_NAME_UC@_TIMESTAMP       "@VERSION_TIMESTAMP@"
+#define @PROJECT_NAME_UC@_TIMESTAMP       "@GIT_TIMESTAMP@"
 
 #define @PROJECT_NAME_UC@_VERSION_MAJOR    @GIT_VERSION_MAJOR@
 #define @PROJECT_NAME_UC@_VERSION_MINOR    @GIT_VERSION_MINOR@
