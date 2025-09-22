@@ -89,8 +89,8 @@ It will set the following variables in the current scope for the current project
 ``GIT_VERSION_SUFFIX``
    Everything after the triplet of ``GIT_VERSION_TRIPLET``.
 
-``VERSION_TIMESTAMP``
-   The current build time.
+``GIT_TIMESTAMP``
+   The timestamp of the commit.
 
 Additionally, it creates:
 
@@ -101,7 +101,7 @@ Additionally, it creates:
    A text file that contains ``GIT_VERSION``.
 
 ``${PROJECT_NAME}-version`` static library target
-   When linking to this target, one can access the version information in C/C++ by including the ``<${PROJECT_NAME}-version.h>`` header file.
+   When linking to this target, one can access the version information in C/C++ by including the ``<${PROJECT_NAME}_version.h>`` header file.
    The file is generated in ``${PROJECT_BINARY_DIR}/include``.
 
 Note that the current branch and/or tag may be unknown to Git when building on a CI server like GitLab or Jenkins.
@@ -336,8 +336,7 @@ Add something to the SBOM.
 
 ``TARGET``
    The CMake target to add.
-   Only executables are supported.
-   It is assumed that the binary is installed under ``CMAKE_INSTALL_BINDIR``.
+   It is assumed that the target is installed under its default location, such as ``CMAKE_INSTALL_BINDIR`` and friends.
 
 ``LICENSE``
    License of the target.
