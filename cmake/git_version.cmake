@@ -5,7 +5,7 @@
 # This file extracts version information from Git and passes it to GIT_VERSION_* variables. It
 # assumes Semantic Versioning for tags.
 #
-# You can override the following when the auto-detect goes wrong:
+# You can override the (environment) variable the following when the auto-detect goes wrong:
 #
 # * GIT_VERSION_BRANCH: the actual git branch
 # * GIT_VERSION_TAG: the actual git tag
@@ -59,6 +59,10 @@ function(version_extract)
 		)
 
 		if("${GIT_VERSION_BRANCH}" STREQUAL "")
+			set(GIT_VERSION_BRANCH "$ENV{GIT_VERSION_BRANCH}")
+		endif()
+
+		if("${GIT_VERSION_BRANCH}" STREQUAL "")
 			execute_process(
 				COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
 				WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -67,6 +71,10 @@ function(version_extract)
 			)
 		else()
 			set(version_git_branch "${GIT_VERSION_BRANCH}")
+		endif()
+
+		if("${GIT_VERSION_TAG}" STREQUAL "")
+			set(GIT_VERSION_TAG "$ENV{GIT_VERSION_TAG}")
 		endif()
 
 		if("${GIT_VERSION_TAG}" STREQUAL "")
