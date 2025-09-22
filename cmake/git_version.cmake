@@ -145,12 +145,6 @@ function(version_extract)
 		message(WARNING "Git not found")
 	endif()
 
-	if("$ENV{CI_BUILD_ID}" STREQUAL "")
-		set(version_build "")
-	else()
-		set(version_build "+build$ENV{CI_BUILD_ID}")
-	endif()
-
 	set(GIT_HASH
 	    "${version_git_hash}"
 	    PARENT_SCOPE
@@ -173,7 +167,7 @@ function(version_extract)
 				     "${version_git_branch}"
 		)
 		set(GIT_VERSION
-		    "${version_git_head}+${_version_git_branch}${version_build}${version_git_dirty}"
+		    "${version_git_head}+${_version_git_branch}${version_git_dirty}"
 		)
 	endif()
 
@@ -221,7 +215,7 @@ function(version_extract)
 			)
 		endif()
 
-		if(NOT "${PROJECT_NAME}" STRQUAL "" AND "${${PROJECT_NAME}_VERSION}" STREQUAL "")
+		if(NOT "${PROJECT_NAME}" STREQUAL "" AND "${${PROJECT_NAME}_VERSION}" STREQUAL "")
 			set(${PROJECT_NAME}_VERSION
 			    "${GIT_VERSION_TRIPLET}"
 			    PARENT_SCOPE
