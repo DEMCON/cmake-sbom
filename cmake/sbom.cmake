@@ -1250,7 +1250,7 @@ function(reuse_lint)
 		set(REUSE_LINT_TARGET ${PROJECT_NAME}-reuse-lint)
 	endif()
 
-	if(REUSE_LINT_ALL OR NOT REUSE_LINT_CONFIG)
+	if(REUSE_LINT_ALL AND NOT REUSE_LINT_CONFIG)
 		set(lint_all ALL)
 	else()
 		set(lint_all)
