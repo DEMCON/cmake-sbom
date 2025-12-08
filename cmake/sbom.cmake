@@ -4,10 +4,6 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-if(COMMAND sbom_generate)
-	return()
-endif()
-
 # Common Platform Enumeration: https://nvd.nist.gov/products/cpe
 #
 # TODO: This detection can be improved.
@@ -51,6 +47,10 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
 	set(SBOM_CPE "cpe:2.3:h:arm:arm:-:*:*:*:*:*:*:*")
 else()
 	message(FATAL_ERROR "Unsupported platform")
+endif()
+
+if(COMMAND sbom_generate)
+	return()
 endif()
 
 # Sets the given variable to a unique SPDIXID-compatible value.
