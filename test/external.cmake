@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2026 Jochem Rutgers
 #
 # SPDX-License-Identifier: MIT
 
@@ -13,7 +13,7 @@ file(
 	WRITE ${CMAKE_CURRENT_BINARY_DIR}/other/CMakeLists.txt
 	"
 	project(other)
-	sbom_generate(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/other-sbom.spdx)
+	sbom_generate(OUTPUT \"${CMAKE_CURRENT_BINARY_DIR}/other-sbom.spdx\")
 	sbom_finalize()
 	"
 )

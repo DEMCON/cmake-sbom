@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2026 Jochem Rutgers
 #
 # SPDX-License-Identifier: MIT
 
@@ -45,14 +45,14 @@ function(version_extract)
 
 	if(Git_FOUND)
 		execute_process(
-			COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+			COMMAND "${GIT_EXECUTABLE}" rev-parse --short HEAD
 			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 			OUTPUT_VARIABLE version_git_head
 			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
 		)
 
 		execute_process(
-			COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+			COMMAND "${GIT_EXECUTABLE}" rev-parse HEAD
 			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 			OUTPUT_VARIABLE version_git_hash
 			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -64,7 +64,7 @@ function(version_extract)
 
 		if("${GIT_VERSION_BRANCH}" STREQUAL "")
 			execute_process(
-				COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+				COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
 				WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 				OUTPUT_VARIABLE version_git_branch
 				ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -79,7 +79,7 @@ function(version_extract)
 
 		if("${GIT_VERSION_TAG}" STREQUAL "")
 			execute_process(
-				COMMAND ${GIT_EXECUTABLE} tag --points-at HEAD
+				COMMAND "${GIT_EXECUTABLE}" tag --points-at HEAD
 				WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 				OUTPUT_VARIABLE version_git_tag
 				ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -91,7 +91,7 @@ function(version_extract)
 		endif()
 
 		execute_process(
-			COMMAND ${GIT_EXECUTABLE} status -s
+			COMMAND "${GIT_EXECUTABLE}" status -s
 			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 			OUTPUT_VARIABLE version_git_dirty
 			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -103,7 +103,7 @@ function(version_extract)
 
 		macro(git_hash TAG TAG_VAR)
 			execute_process(
-				COMMAND ${GIT_EXECUTABLE} rev-parse ${TAG}
+				COMMAND "${GIT_EXECUTABLE}" rev-parse ${TAG}
 				WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 				OUTPUT_VARIABLE ${TAG_VAR}_
 				ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -116,7 +116,7 @@ function(version_extract)
 		endmacro()
 
 		execute_process(
-			COMMAND ${GIT_EXECUTABLE} tag
+			COMMAND "${GIT_EXECUTABLE}" tag
 			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 			OUTPUT_VARIABLE GIT_TAGS
 			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -136,7 +136,7 @@ function(version_extract)
 		endif()
 
 		execute_process(
-			COMMAND ${GIT_EXECUTABLE} show --no-patch --format=%ci
+			COMMAND "${GIT_EXECUTABLE}" show --no-patch --format=%ci
 			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 			OUTPUT_VARIABLE GIT_TIMESTAMP
 			ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -166,9 +166,7 @@ function(version_extract)
 		string(REGEX REPLACE "[^A-Za-z0-9]+" "+" _version_git_branch
 				     "${version_git_branch}"
 		)
-		set(GIT_VERSION
-		    "${version_git_head}+${_version_git_branch}${version_git_dirty}"
-		)
+		set(GIT_VERSION "${version_git_head}+${_version_git_branch}${version_git_dirty}")
 	endif()
 
 	set(GIT_VERSION
@@ -291,13 +289,13 @@ function(version_generate)
 	string(REGEX REPLACE "[^A-Z0-9]+" "_" PROJECT_NAME_UC "${PROJECT_NAME_UC}")
 
 	configure_file(
-		${VERSION_SOURCE_DIR}/git_version.sh.in ${PROJECT_BINARY_DIR}/version.sh
+		"${VERSION_SOURCE_DIR}/git_version.sh.in" "${PROJECT_BINARY_DIR}/version.sh"
 		ESCAPE_QUOTES @ONLY
 	)
 
 	configure_file(
-		${VERSION_SOURCE_DIR}/git_version.h.in
-		${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}_version.h ESCAPE_QUOTES @ONLY
+		"${VERSION_SOURCE_DIR}/git_version.h.in"
+		"${PROJECT_BINARY_DIR}/include/${PROJECT_NAME}_version.h" ESCAPE_QUOTES @ONLY
 	)
 	file(WRITE ${PROJECT_BINARY_DIR}/version.txt "${GIT_VERSION}")
 

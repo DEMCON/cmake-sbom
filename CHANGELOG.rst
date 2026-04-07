@@ -1,7 +1,7 @@
 ﻿
 
 ..
-   SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
+   SPDX-FileCopyrightText: 2023-2026 Jochem Rutgers
    
    SPDX-License-Identifier: CC0-1.0
 
@@ -25,7 +25,19 @@ Added
 
 ...
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.4.0...HEAD
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.4.1...HEAD
+
+
+
+`1.4.1`_ - 2026-04-07
+---------------------
+
+Fixed
+`````
+
+- #123: Fix handling spaces in paths.
+
+.. _1.4.1: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.4.1
 
 
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2026 Jochem Rutgers
 #
 # SPDX-License-Identifier: MIT
 
@@ -48,12 +48,12 @@ include(git_version)
 		${TEST_TARGET}
 		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${name}.cmake
 		COMMAND
-			${CMAKE_COMMAND} -E env ${TEST_ENV} ${CMAKE_COMMAND} "${_dir}/src" -G
+			"${CMAKE_COMMAND}" -E env ${TEST_ENV} ${CMAKE_COMMAND} "${_dir}/src" -G
 			"${CMAKE_GENERATOR}" "-DCMAKE_INSTALL_PREFIX=${_dir}/out"
 			"-DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/cmake"
 			"-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
 			"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-		COMMAND ${CMAKE_COMMAND} --build . --target install
+		COMMAND "${CMAKE_COMMAND}" --build . --target install
 		WORKING_DIRECTORY "${_dir}/build"
 		COMMENT "Testing ${name}"
 		VERBATIM
