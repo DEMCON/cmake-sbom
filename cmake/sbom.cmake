@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2025 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2026 Jochem Rutgers
 #
 # SPDX-License-Identifier: MIT
 
@@ -459,7 +459,7 @@ function(sbom_finalize)
 
 	get_property(_packages GLOBAL PROPERTY sbom_packages)
 	foreach(_p IN LISTS _packages)
-		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT ${_p})
+		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT \"${_p}\")
 "
 		)
 	endforeach()
@@ -467,14 +467,14 @@ function(sbom_finalize)
 	get_property(_licenses GLOBAL PROPERTY sbom_licenses)
 	foreach(_lic IN LISTS _licenses)
 		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
-		     "install(SCRIPT ${PROJECT_BINARY_DIR}/sbom/${_lic}.cmake)
+		     "install(SCRIPT \"${PROJECT_BINARY_DIR}/sbom/${_lic}.cmake\")
 "
 		)
 	endforeach()
 
 	get_property(_relations GLOBAL PROPERTY sbom_relations)
 	foreach(_rel IN LISTS _relations)
-		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT ${_rel})
+		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT \"${_rel}\")
 "
 		)
 	endforeach()
@@ -523,7 +523,7 @@ function(sbom_finalize)
 			"
 			message(STATUS \"Verifying: ${_sbom}\")
 			execute_process(
-				COMMAND ${Python3_EXECUTABLE} -m spdx_tools.spdx.clitools.pyspdxtools
+				COMMAND \"${Python3_EXECUTABLE}\" -m spdx_tools.spdx.clitools.pyspdxtools
 				-i \"${_sbom}\" ${_graph}
 				RESULT_VARIABLE _res
 			)
@@ -532,7 +532,7 @@ function(sbom_finalize)
 			endif()
 
 			execute_process(
-				COMMAND ${Python3_EXECUTABLE} -m ntia_conformance_checker.main
+				COMMAND \"${Python3_EXECUTABLE}\" -m ntia_conformance_checker.main
 				--file \"${_sbom}\"
 				RESULT_VARIABLE _res
 			)
@@ -725,7 +725,7 @@ FileCopyrightText: NOASSERTION${relationship}
 			"
 	)
 
-	install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_FILE_SPDXID}.cmake)
+	install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_FILE_SPDXID}.cmake")
 endfunction()
 
 # Append a target output to the SBOM. Use this after calling sbom_generate().
@@ -875,7 +875,7 @@ Relationship: ${SBOM_DIRECTORY_RELATIONSHIP}-\${_count}
 			"
 	)
 
-	install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/${SBOM_DIRECTORY_SPDXID}.cmake)
+	install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_DIRECTORY_SPDXID}.cmake")
 
 	set(SBOM_LAST_SPDXID
 	    ""
@@ -1262,7 +1262,7 @@ function(reuse_lint)
 		add_custom_target(
 			${REUSE_LINT_TARGET}
 			${lint_all}
-			COMMAND ${Python3_EXECUTABLE} -m reuse --root "${PROJECT_SOURCE_DIR}" lint
+			COMMAND "${Python3_EXECUTABLE}" -m reuse --root "${PROJECT_SOURCE_DIR}" lint
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 			VERBATIM
 		)
@@ -1274,7 +1274,7 @@ function(reuse_lint)
 		# It seems that there is a race in linting and generating build artifacts. So, run
 		# this (also) during config, to make sure that there is nothing else going on.
 		execute_process(
-			COMMAND ${Python3_EXECUTABLE} -m reuse --root "${PROJECT_SOURCE_DIR}" lint
+			COMMAND "${Python3_EXECUTABLE}" -m reuse --root "${PROJECT_SOURCE_DIR}" lint
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 			RESULT_VARIABLE res
 		)
@@ -1306,7 +1306,7 @@ function(reuse_spdx)
 
 		add_custom_target(
 			${REUSE_SPDX_TARGET} ALL
-			COMMAND ${Python3_EXECUTABLE} -m reuse --root "${PROJECT_SOURCE_DIR}" spdx
+			COMMAND "${Python3_EXECUTABLE}" -m reuse --root "${PROJECT_SOURCE_DIR}" spdx
 				-o "${REUSE_SPDX_OUTPUT}"
 			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 			VERBATIM
