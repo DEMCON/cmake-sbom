@@ -149,8 +149,13 @@ function(sbom_generate)
 	)
 
 	if("${SBOM_GENERATE_OUTPUT}" STREQUAL "")
+		set(_sbom_install_dir "\${CMAKE_INSTALL_PREFIX}")
+		if(NOT "${CMAKE_INSTALL_DATAROOTDIR}" STREQUAL "")
+			string(APPEND _sbom_install_dir "/${CMAKE_INSTALL_DATAROOTDIR}")
+		endif()
+		string(APPEND _sbom_install_dir "/${PROJECT_NAME}")
 		set(SBOM_GENERATE_OUTPUT
-		    "\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/${PROJECT_NAME}-sbom-${SBOM_GENERATE_VERSION_PATH}.spdx"
+		    "${_sbom_install_dir}/${PROJECT_NAME}-sbom-${SBOM_GENERATE_VERSION_PATH}.spdx"
 		)
 	endif()
 
@@ -242,7 +247,11 @@ ExternalRef: ${SBOM_GENERATE_EXTREF}"
 
 	install(
 		CODE "
-		message(STATUS \"Installing: ${SBOM_GENERATE_OUTPUT}\")
+		set(_sbom_output \"${SBOM_GENERATE_OUTPUT}\")
+		if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_output}\")
+			set(_sbom_output \"\$ENV{DESTDIR}\${_sbom_output}\")
+		endif()
+		message(STATUS \"Installing: \${_sbom_output}\")
 		set(SBOM_EXT_DOCS)
 		file(WRITE \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\")
 		"
@@ -486,7 +495,7 @@ function(sbom_finalize)
 		if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom}\")
 			set(_sbom \"\$ENV{DESTDIR}\${_sbom}\")
 		endif()
-		message(STATUS \"Finalizing: ${_sbom}\")
+		message(STATUS \"Finalizing: \${_sbom}\")
 		list(SORT SBOM_VERIFICATION_CODES)
 		string(REPLACE \";\" \"\" SBOM_VERIFICATION_CODES \"\${SBOM_VERIFICATION_CODES}\")
 		file(WRITE \"${PROJECT_BINARY_DIR}/sbom/verification.txt\" \"\${SBOM_VERIFICATION_CODES}\")
