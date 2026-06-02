@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "ms-vscode.cmake-tools",
+    "ms-vscode.cpptools",
+    "ms-python.python",
+    "EditorConfig.EditorConfig",
+    "cheshirekow.cmake-format"
+  ]
+}

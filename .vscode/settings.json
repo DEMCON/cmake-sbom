@@ -1,0 +1,9 @@
+{
+  "editor.formatOnSave": true,
+  "cmake.configureOnOpen": false,
+  "files.associations": {
+    ".cmake-format": "yaml",
+  },
+  "vim.textwidth": 100,
+  "vim.tabstop": 8,
+}
