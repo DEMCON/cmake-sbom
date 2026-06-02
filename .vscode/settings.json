@@ -6,4 +6,5 @@
   },
   "vim.textwidth": 100,
   "vim.tabstop": 8,
+  "cSpell.diagnosticLevel": "Hint",
 }
