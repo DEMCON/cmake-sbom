@@ -53,7 +53,7 @@ include(git_version)
 			"-DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/cmake"
 			"-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
 			"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-		COMMAND "${CMAKE_COMMAND}" --build . --target install
+		COMMAND "${CMAKE_COMMAND}" -E env ${TEST_ENV} ${CMAKE_COMMAND} --build . --target install
 		WORKING_DIRECTORY "${_dir}/build"
 		COMMENT "Testing ${name}"
 		VERBATIM
@@ -75,6 +75,7 @@ test(C)
 test(CXX)
 test(C_CXX)
 test(version)
+test(destdir ENV DESTDIR=tmp)
 test(env_version BIN env_branch ENV GIT_VERSION_BRANCH=testbranch)
 test(env_version BIN env_tag ENV GIT_VERSION_TAG=v2.4.8)
 test(env_version BIN env_both ENV GIT_VERSION_BRANCH=testbranch GIT_VERSION_TAG=v2.4.8)
