@@ -482,12 +482,16 @@ function(sbom_finalize)
 	file(
 		WRITE ${PROJECT_BINARY_DIR}/sbom/verify.cmake
 		"
+		set(_sbom \"${_sbom}\")
+		if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom}\")
+			set(_sbom \"\$ENV{DESTDIR}\${_sbom}\")
+		endif()
 		message(STATUS \"Finalizing: ${_sbom}\")
 		list(SORT SBOM_VERIFICATION_CODES)
 		string(REPLACE \";\" \"\" SBOM_VERIFICATION_CODES \"\${SBOM_VERIFICATION_CODES}\")
 		file(WRITE \"${PROJECT_BINARY_DIR}/sbom/verification.txt\" \"\${SBOM_VERIFICATION_CODES}\")
 		file(SHA1 \"${PROJECT_BINARY_DIR}/sbom/verification.txt\" SBOM_VERIFICATION_CODE)
-		configure_file(\"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"${_sbom}\")
+		configure_file(\"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\" \"\${_sbom}\")
 		"
 	)
 
@@ -521,10 +525,10 @@ function(sbom_finalize)
 		file(
 			APPEND ${PROJECT_BINARY_DIR}/sbom/verify.cmake
 			"
-			message(STATUS \"Verifying: ${_sbom}\")
+			message(STATUS \"Verifying: \${_sbom}\")
 			execute_process(
 				COMMAND \"${Python3_EXECUTABLE}\" -m spdx_tools.spdx.clitools.pyspdxtools
-				-i \"${_sbom}\" ${_graph}
+				-i \"\${_sbom}\" ${_graph}
 				RESULT_VARIABLE _res
 			)
 			if(NOT _res EQUAL 0)
@@ -533,7 +537,7 @@ function(sbom_finalize)
 
 			execute_process(
 				COMMAND \"${Python3_EXECUTABLE}\" -m ntia_conformance_checker.main
-				--file \"${_sbom}\"
+				--file \"\${_sbom}\"
 				RESULT_VARIABLE _res
 			)
 			if(NOT _res EQUAL 0)
@@ -703,12 +707,17 @@ Relationship: ${SBOM_FILE_RELATIONSHIP}"
 			"
 			cmake_policy(SET CMP0011 NEW)
 			cmake_policy(SET CMP0012 NEW)
-			if(NOT EXISTS \"\${CMAKE_INSTALL_PREFIX}/${SBOM_FILE_FILENAME}\")
+			set(_sbom_install_prefix \"\${CMAKE_INSTALL_PREFIX}\")
+			if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_install_prefix}\")
+				set(_sbom_install_prefix \"\$ENV{DESTDIR}\${_sbom_install_prefix}\")
+			endif()
+			set(_sbom_file \"\${_sbom_install_prefix}/${SBOM_FILE_FILENAME}\")
+			if(NOT EXISTS \"\${_sbom_file}\")
 				if(NOT ${SBOM_FILE_OPTIONAL})
 					message(FATAL_ERROR \"Cannot find ${SBOM_FILE_FILENAME}\")
 				endif()
 			else()
-				file(SHA1 \${CMAKE_INSTALL_PREFIX}/${SBOM_FILE_FILENAME} _sha1)
+				file(SHA1 \"\${_sbom_file}\" _sha1)
 				list(APPEND SBOM_VERIFICATION_CODES \${_sha1})
 				file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
 \"
@@ -849,14 +858,18 @@ function(sbom_directory)
 		OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_DIRECTORY_SPDXID}.cmake"
 		CONTENT
 			"
+			set(_sbom_install_prefix \"\${CMAKE_INSTALL_PREFIX}\")
+			if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_install_prefix}\")
+				set(_sbom_install_prefix \"\$ENV{DESTDIR}\${_sbom_install_prefix}\")
+			endif()
 			file(GLOB_RECURSE _files
-				LIST_DIRECTORIES false RELATIVE \"\${CMAKE_INSTALL_PREFIX}\"
-				\"\${CMAKE_INSTALL_PREFIX}/${SBOM_DIRECTORY_DIRECTORY}/*\"
+				LIST_DIRECTORIES false RELATIVE \"\${_sbom_install_prefix}\"
+				\"\${_sbom_install_prefix}/${SBOM_DIRECTORY_DIRECTORY}/*\"
 			)
 
 			set(_count 0)
 			foreach(_f IN LISTS _files)
-				file(SHA1 \"\${CMAKE_INSTALL_PREFIX}/\${_f}\" _sha1)
+				file(SHA1 \"\${_sbom_install_prefix}/\${_f}\" _sha1)
 				list(APPEND SBOM_VERIFICATION_CODES \${_sha1})
 				file(APPEND \"${PROJECT_BINARY_DIR}/sbom/sbom.spdx.in\"
 \"
