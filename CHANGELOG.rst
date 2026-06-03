@@ -25,7 +25,31 @@ Added
 
 ...
 
-.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.4.1...HEAD
+.. _Unreleased: https://github.com/DEMCON/cmake-sbom/compare/v1.5.0...HEAD
+
+
+
+`1.5.0`_ - 2026-06-03
+---------------------
+
+Added
+`````
+
+- Split off CPE detection to ``cpe_detect()`` (``cmake/cpe.cmake``) to detect CPE for the current
+  system, and use it in the generated SBOM.
+- ``CPE`` parameter to ``sbom_generate()`` to specify CPE for the generated SBOM.
+
+Fixed
+`````
+
+- #131: Fix install-time SBOM generation when ``DESTDIR`` is set.
+
+Changed
+```````
+
+- Improved CPE detection for more platforms.
+
+.. _1.5.0: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.5.0
 
 
 
