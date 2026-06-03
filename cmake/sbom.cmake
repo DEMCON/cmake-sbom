@@ -68,6 +68,7 @@ function(sbom_generate)
 	    LICENSE
 	    COPYRIGHT
 	    CPE
+	    SPDX_VERSION
 	    PROJECT
 	    VERSION
 	    SUPPLIER
@@ -102,6 +103,33 @@ function(sbom_generate)
 		endif()
 	endif()
 
+	if("${SBOM_GENERATE_SPDX_VERSION}" STREQUAL "")
+		set(SBOM_GENERATE_SPDX_VERSION 2.3)
+	elseif("${SBOM_GENERATE_SPDX_VERSION}" STREQUAL "2.2.2")
+		set(SBOM_GENERATE_SPDX_VERSION 2.2)
+	elseif("${SBOM_GENERATE_SPDX_VERSION}" STREQUAL "2.3.0")
+		set(SBOM_GENERATE_SPDX_VERSION 2.3)
+	endif()
+
+	if(NOT "${SBOM_GENERATE_SPDX_VERSION}" STREQUAL "2.2"
+	   AND NOT "${SBOM_GENERATE_SPDX_VERSION}" STREQUAL "2.3"
+	)
+		message(
+			FATAL_ERROR
+				"Unsupported SPDX_VERSION ${SBOM_GENERATE_SPDX_VERSION}; use 2.2 or 2.3"
+		)
+	endif()
+
+	set(_sbom_spdx_version "SPDX-${SBOM_GENERATE_SPDX_VERSION}")
+	set(_sbom_built_date)
+	set(_sbom_primary_package_purpose)
+	if("${SBOM_GENERATE_SPDX_VERSION}" STREQUAL "2.3")
+		set(_sbom_built_date "BuiltDate: ${NOW_UTC}")
+		set(_sbom_primary_package_purpose "
+PrimaryPackagePurpose: APPLICATION"
+		)
+	endif()
+
 	string(REGEX REPLACE "[^-a-zA-Z0-9_.]+" "+" SBOM_GENERATE_VERSION_PATH
 			     "${SBOM_GENERATE_VERSION}"
 	)
@@ -119,7 +147,9 @@ function(sbom_generate)
 
 	if("${SBOM_GENERATE_CPE}" STREQUAL "")
 		cpe_detect(OUTPUT SBOM_GENERATE_CPE)
-		if(DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS AND NOT CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+		if(DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS AND NOT
+								 CMAKE_SUPPRESS_DEVELOPER_WARNINGS
+		)
 			message(STATUS "Detected CPE: ${SBOM_GENERATE_CPE}")
 		endif()
 	endif()
@@ -262,7 +292,7 @@ PackageCopyrightText: NOASSERTION
 PackageSupplier: Organization: Anonymous
 FilesAnalyzed: false
 PackageSummary: <text>The compiler as identified by CMake, running on ${CMAKE_HOST_SYSTEM_NAME} (${CMAKE_HOST_SYSTEM_PROCESSOR})</text>
-PrimaryPackagePurpose: APPLICATION
+${_sbom_primary_package_purpose}
 Relationship: SPDXRef-compiler-${lang} CONTAINS NOASSERTION
 Relationship: SPDXRef-compiler-${lang} BUILD_DEPENDENCY_OF SPDXRef-${SBOM_GENERATE_PROJECT}
 RelationshipComment: <text>SPDXRef-${SBOM_GENERATE_PROJECT} is built by compiler ${CMAKE_${lang}_COMPILER_ID} (${CMAKE_${lang}_COMPILER}) version ${CMAKE_${lang}_COMPILER_VERSION}</text>"
@@ -274,7 +304,7 @@ RelationshipComment: <text>SPDXRef-${SBOM_GENERATE_PROJECT} is built by compiler
 			GENERATE
 			OUTPUT "${_f}"
 			CONTENT
-				"SPDXVersion: SPDX-2.3
+				"SPDXVersion: ${_sbom_spdx_version}
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
 DocumentName: ${doc_name}
@@ -297,7 +327,7 @@ PackageCopyrightText: ${SBOM_GENERATE_COPYRIGHT}
 PackageHomePage: ${SBOM_GENERATE_SUPPLIER_URL}
 PackageComment: <text>Built by CMake ${CMAKE_VERSION} with ${CMAKE_BUILD_TYPE} configuration for ${CMAKE_SYSTEM_NAME} (${CMAKE_SYSTEM_PROCESSOR})</text>
 PackageVerificationCode: \${SBOM_VERIFICATION_CODE}
-BuiltDate: ${NOW_UTC}
+${_sbom_built_date}
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 "
 		)
@@ -340,7 +370,6 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 
 	install(CODE "set(SBOM_VERIFICATION_CODES \"\")")
 
-
 	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
 	if("${_sbom_id}" STREQUAL "")
 		set(_sbom_id 0)
@@ -363,6 +392,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_relations "")
 	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_osv_file "${SBOM_GENERATE_OSV_QUERY}")
 	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_osv "")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_has_files "")
 
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
 
@@ -471,8 +501,10 @@ function(sbom_finalize)
 		WRITE ${PROJECT_BINARY_DIR}/sbom/verify.cmake
 		"
 		set(_sbom \"${_sbom}\")
+		set(_install_root \"${CMAKE_INSTALL_PREFIX}\")
 		if(UNIX AND NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom}\")
 			set(_sbom \"\$ENV{DESTDIR}\${_sbom}\")
+			set(_install_root \"\$ENV{DESTDIR}\${_install_root}\")
 		endif()
 		message(STATUS \"Finalizing: \${_sbom}\")
 		list(SORT SBOM_VERIFICATION_CODES)
@@ -533,6 +565,58 @@ function(sbom_finalize)
 			endif()
 			"
 		)
+
+		if("${SBOM_FINALIZE_VERIFY_WITH_SBOM_TOOL}" STREQUAL "")
+			# Skip this check. It is unstable anyway.
+		elseif(WIN32)
+			find_program(sbom_tool NAMES "sbom.exe" "sbom-tool.exe")
+			if(NOT sbom_tool)
+				message(
+					STATUS
+						"sbom-tool not found. Optionally install it via: winget install Microsoft.SbomTool"
+				)
+			endif()
+		else()
+			find_program(sbom_tool NAMES "sbom-tool")
+			if(NOT sbom_tool)
+				message(
+					STATUS
+						"sbom-tool not found. Optionally download it from: https://github.com/microsoft/sbom-tool"
+				)
+			endif()
+		endif()
+
+		get_property(_has_files GLOBAL PROPERTY sbom_${_sbom_id}_has_files)
+
+		if(sbom_tool
+		   AND _has_files
+		   AND SBOM_FINALIZE_VERIFY_WITH_SBOM_TOOL
+		)
+			file(
+				APPEND ${PROJECT_BINARY_DIR}/sbom/verify.cmake
+				"
+				file(MAKE_DIRECTORY \"${CMAKE_CURRENT_BINARY_DIR}/_manifest/spdx_2.2/\")
+
+				execute_process(
+					COMMAND \"${Python3_EXECUTABLE}\" -m spdx_tools.spdx.clitools.pyspdxtools
+					-i \"\${_sbom}\" -o \"${CMAKE_CURRENT_BINARY_DIR}/_manifest/spdx_2.2/manifest.spdx.json\"
+					RESULT_VARIABLE _res
+				)
+				if(NOT _res EQUAL 0)
+					message(FATAL_ERROR \"SBOM conversion failed\")
+				endif()
+
+				execute_process(
+					COMMAND \"${sbom_tool}\" validate -b . -o \"${CMAKE_CURRENT_BINARY_DIR}/_manifest/spdx_2.2/validation.json\" -m \"${CMAKE_CURRENT_BINARY_DIR}/_manifest\" -mi SPDX:2.2 -Ha SHA1
+					WORKING_DIRECTORY \"\${_install_root}\"
+					RESULT_VARIABLE _res
+				)
+				if(NOT _res EQUAL 0)
+					message(WARNING \"SBOM sbom-tool verification failed\")
+				endif()
+				"
+			)
+		endif()
 	endif()
 
 	file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT verify.cmake)
@@ -739,6 +823,8 @@ FileCopyrightText: NOASSERTION${relationship}
 	)
 
 	install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_FILE_SPDXID}.cmake")
+
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_has_files 1)
 endfunction()
 
 # Append a target output to the SBOM. Use this after calling sbom_generate().
@@ -893,6 +979,7 @@ Relationship: ${SBOM_DIRECTORY_RELATIONSHIP}-\${_count}
 	)
 
 	install(SCRIPT "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_DIRECTORY_SPDXID}.cmake")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_has_files 1)
 
 	set(SBOM_LAST_SPDXID
 	    ""

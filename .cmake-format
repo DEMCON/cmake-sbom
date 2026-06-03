@@ -23,6 +23,7 @@ parse:
         EXTREF: 1
         OSV_QUERY: 1
         CPE: 1
+        SPDX_VERSION: 1
     sbom_file:
       kwargs:
         FILENAME: 1
