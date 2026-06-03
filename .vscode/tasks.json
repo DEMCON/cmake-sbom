@@ -49,6 +49,12 @@
         "kind": "build",
         "isDefault": true
       },
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "clear": true
+      },
       "problemMatcher": []
     }
   ]

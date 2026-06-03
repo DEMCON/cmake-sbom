@@ -28,7 +28,8 @@ if errorlevel 1 goto error
 
 :have_venv
 echo Building...
-if not exist build mkdir build
+if exist build rmdir /s /q build
+mkdir build
 if errorlevel 1 goto error
 cd build
 if errorlevel 1 goto error
