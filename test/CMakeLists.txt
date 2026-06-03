@@ -53,7 +53,8 @@ include(git_version)
 			"-DCMAKE_MODULE_PATH=${PROJECT_SOURCE_DIR}/cmake"
 			"-DPython3_EXECUTABLE=${Python3_EXECUTABLE}"
 			"-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
-		COMMAND "${CMAKE_COMMAND}" -E env ${TEST_ENV} ${CMAKE_COMMAND} --build . --target install
+		COMMAND "${CMAKE_COMMAND}" -E env ${TEST_ENV} ${CMAKE_COMMAND} --build . --target
+			install
 		WORKING_DIRECTORY "${_dir}/build"
 		COMMENT "Testing ${name}"
 		VERBATIM
@@ -64,6 +65,7 @@ endfunction()
 
 test(minimal)
 test(minimal2)
+test(cpe)
 test(full_doc)
 test(input_doc)
 test(file)

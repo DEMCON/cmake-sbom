@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+# SPDX-FileCopyrightText: 2023-2026 Jochem Rutgers
 #
 # SPDX-License-Identifier: CC0-1.0
 
@@ -22,6 +22,7 @@ parse:
         DOWNLOAD_URL: 1
         EXTREF: 1
         OSV_QUERY: 1
+        CPE: 1
     sbom_file:
       kwargs:
         FILENAME: 1
@@ -86,6 +87,10 @@ parse:
         COMMIT: 1
         ECOSYSTEM: 1
         PURL: 1
+    cpe_detect:
+      kwargs:
+        OUTPUT: 1
+        DEFAULT: 1
 
 format:
   line_width: 100

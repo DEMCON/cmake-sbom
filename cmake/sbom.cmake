@@ -4,56 +4,13 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-# Common Platform Enumeration: https://nvd.nist.gov/products/cpe
-#
-# TODO: This detection can be improved.
-if(WIN32)
-	if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
-		set(_arch "x64")
-	elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "IA64")
-		set(_arch "x64")
-	elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "ARM64")
-		set(_arch "arm64")
-	elseif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "X86")
-		set(_arch "x86")
-	elseif(CMAKE_CXX_COMPILER MATCHES "64" OR CMAKE_C_COMPILER MATCHES "64")
-		set(_arch "x64")
-	elseif(CMAKE_CXX_COMPILER MATCHES "86" OR CMAKE_C_COMPILER MATCHES "86")
-		set(_arch "x86")
-	else()
-		set(_arch "*")
-	endif()
-
-	if("${CMAKE_SYSTEM_VERSION}" STREQUAL "6.1")
-		set(SBOM_CPE "cpe:2.3:o:microsoft:windows_7:-:*:*:*:*:*:${_arch}:*")
-	elseif("${CMAKE_SYSTEM_VERSION}" STREQUAL "6.2")
-		set(SBOM_CPE "cpe:2.3:o:microsoft:windows_8:-:*:*:*:*:*:${_arch}:*")
-	elseif("${CMAKE_SYSTEM_VERSION}" STREQUAL "6.3")
-		set(SBOM_CPE "cpe:2.3:o:microsoft:windows_8.1:-:*:*:*:*:*:${_arch}:*")
-	elseif("${CMAKE_SYSTEM_VERSION}" VERSION_LESS 10)
-		set(SBOM_CPE "cpe:2.3:o:microsoft:windows:-:*:*:*:*:*:${_arch}:*")
-	elseif("${CMAKE_SYSTEM_VERSION}" VERSION_LESS 10.0.22000)
-		set(SBOM_CPE "cpe:2.3:o:microsoft:windows_10:-:*:*:*:*:*:${_arch}:*")
-	else()
-		set(SBOM_CPE "cpe:2.3:o:microsoft:windows_11:-:*:*:*:*:*:${_arch}:*")
-	endif()
-elseif(APPLE)
-	set(SBOM_CPE "cpe:2.3:o:apple:mac_os:*:*:*:*:*:*:${CMAKE_SYSTEM_PROCESSOR}:*")
-elseif(ANDROID)
-	set(SBOM_CPE "cpe:2.3:o:google:android:-:*:*:*:*:*:${CMAKE_SYSTEM_PROCESSOR}:*")
-elseif(UNIX)
-	set(SBOM_CPE "cpe:2.3:o:canonical:ubuntu_linux:-:*:*:*:*:*:${CMAKE_SYSTEM_PROCESSOR}:*")
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-	set(SBOM_CPE "cpe:2.3:h:arm:arm:-:*:*:*:*:*:*:*")
-else()
-	message(FATAL_ERROR "Unsupported platform")
-endif()
-
 if(COMMAND sbom_generate)
 	return()
 endif()
 
-# Sets the given variable to a unique SPDIXID-compatible value.
+include("${CMAKE_CURRENT_LIST_DIR}/cpe.cmake")
+
+# Sets the given variable to a unique SPDXID-compatible value.
 function(sbom_spdxid)
 	set(options)
 	set(oneValueArgs VARIABLE CHECK)
@@ -110,6 +67,7 @@ function(sbom_generate)
 	    OUTPUT
 	    LICENSE
 	    COPYRIGHT
+	    CPE
 	    PROJECT
 	    VERSION
 	    SUPPLIER
@@ -157,6 +115,10 @@ function(sbom_generate)
 		set(SBOM_GENERATE_OUTPUT
 		    "${_sbom_install_dir}/${PROJECT_NAME}-sbom-${SBOM_GENERATE_VERSION_PATH}.spdx"
 		)
+	endif()
+
+	if("${SBOM_GENERATE_CPE}" STREQUAL "")
+		cpe_detect(OUTPUT SBOM_GENERATE_CPE)
 	endif()
 
 	if("${SBOM_GENERATE_LICENSE}" STREQUAL "")
@@ -288,7 +250,7 @@ ExternalRef: ${SBOM_GENERATE_EXTREF}"
 
 PackageName: ${CMAKE_${lang}_COMPILER_ID} (${lang} compiler)
 SPDXID: SPDXRef-compiler-${lang}
-ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
+ExternalRef: SECURITY cpe23Type ${SBOM_GENERATE_CPE}
 PackageVersion: ${CMAKE_${lang}_COMPILER_VERSION}
 PackageDownloadLocation: NOASSERTION
 PackageLicenseConcluded: NOASSERTION
@@ -322,7 +284,7 @@ Created: ${NOW_UTC}${compilers}
 
 PackageName: ${PROJECT_NAME}
 SPDXID: SPDXRef-${SBOM_GENERATE_PROJECT}
-ExternalRef: SECURITY cpe23Type ${SBOM_CPE}${extref}
+ExternalRef: SECURITY cpe23Type ${SBOM_GENERATE_CPE}${extref}
 PackageVersion: ${SBOM_GENERATE_VERSION}
 PackageSupplier: Organization: ${SBOM_GENERATE_SUPPLIER}
 PackageDownloadLocation: ${SBOM_GENERATE_DOWNLOAD_URL}
@@ -380,6 +342,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 	    "${SBOM_GENERATE_OUTPUT}"
 	    PARENT_SCOPE
 	)
+	set_property(GLOBAL PROPERTY sbom_cpe "${SBOM_GENERATE_CPE}")
 	set_property(GLOBAL PROPERTY sbom_project "${SBOM_GENERATE_PROJECT}")
 	set_property(GLOBAL PROPERTY sbom_spdxids 0)
 	set_property(GLOBAL PROPERTY sbom_packages "")
@@ -390,7 +353,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
 
-	sbom_licence_try("${SBOM_GENERATE_LICENSE}")
+	sbom_license_try("${SBOM_GENERATE_LICENSE}")
 endfunction()
 
 # Find python.
@@ -460,6 +423,7 @@ function(sbom_finalize)
 	endif()
 
 	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
+	get_property(_sbom_cpe GLOBAL PROPERTY sbom_cpe)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
 	if("${_sbom_project}" STREQUAL "")
@@ -582,6 +546,7 @@ ${_osv}
 	    "${_sbom}"
 	    PARENT_SCOPE
 	)
+	set_property(GLOBAL PROPERTY sbom_cpe "")
 	set_property(GLOBAL PROPERTY sbom_project "")
 endfunction()
 
@@ -707,7 +672,7 @@ Relationship: ${SBOM_FILE_RELATIONSHIP}"
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
-	sbom_licence_try("${SBOM_FILE_LICENSE}")
+	sbom_license_try("${SBOM_FILE_LICENSE}")
 
 	file(
 		GENERATE
@@ -860,7 +825,7 @@ function(sbom_directory)
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
-	sbom_licence_try("${SBOM_DIRECTORY_LICENSE}")
+	sbom_license_try("${SBOM_DIRECTORY_LICENSE}")
 
 	file(
 		GENERATE
@@ -992,7 +957,7 @@ PackageSourceInfo: Commit:${SBOM_PACKAGE_COMMIT}"
 PackageLicenseConcluded: ${SBOM_PACKAGE_LICENSE}"
 		)
 
-		sbom_licence_try("${SBOM_PACKAGE_LICENSE}")
+		sbom_license_try("${SBOM_PACKAGE_LICENSE}")
 	else()
 		set(_fields "${_fields}
 PackageLicenseConcluded: NOASSERTION"
@@ -1006,6 +971,7 @@ ExternalRef: ${_ref}"
 	endforeach()
 
 	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
+	get_property(_sbom_cpe GLOBAL PROPERTY sbom_cpe)
 	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
 
 	if("${SBOM_PACKAGE_RELATIONSHIP}" STREQUAL "")
@@ -1031,7 +997,7 @@ ExternalRef: ${_ref}"
 \"
 PackageName: ${SBOM_PACKAGE_PACKAGE}
 SPDXID: ${SBOM_PACKAGE_SPDXID}
-ExternalRef: SECURITY cpe23Type ${SBOM_CPE}
+ExternalRef: SECURITY cpe23Type ${_sbom_cpe}
 PackageDownloadLocation: ${SBOM_PACKAGE_DOWNLOAD_LOCATION}
 PackageLicenseDeclared: NOASSERTION
 PackageCopyrightText: ${SBOM_PACKAGE_COPYRIGHT}
@@ -1214,7 +1180,7 @@ ExtractedText: <text>\"
 endfunction()
 
 # Try to add a license to the SBOM.
-function(sbom_licence_try id)
+function(sbom_license_try id)
 	if(NOT "${id}" MATCHES "^LicenseRef-")
 		# Not an external license.
 		return()
