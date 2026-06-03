@@ -119,6 +119,7 @@ function(sbom_generate)
 
 	if("${SBOM_GENERATE_CPE}" STREQUAL "")
 		cpe_detect(OUTPUT SBOM_GENERATE_CPE)
+		message(STATUS "Detected CPE: ${SBOM_GENERATE_CPE}")
 	endif()
 
 	if("${SBOM_GENERATE_LICENSE}" STREQUAL "")
