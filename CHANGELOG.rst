@@ -48,6 +48,7 @@ Changed
 ```````
 
 - Improved CPE detection for more platforms.
+- Allow nested ``sbom_generate()`` calls, for example in subprojects.
 
 .. _1.5.0: https://github.com/DEMCON/cmake-sbom/releases/tag/v1.5.0
 

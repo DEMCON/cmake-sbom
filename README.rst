@@ -173,7 +173,7 @@ SBOM generation
 
 In your ``CMakeLists.txt``, make sure the ``cmake`` directory is in your ``CMAKE_MODULE_PATH``.
 Then call ``include(sbom)`` from you ``CMakeLists.txt`` to setup the SBOM functions.
-The concept is that an SBOM is generated for one project.
+The concept is that an SBOM is generated for one (CMake) project.
 It contains one package (the output of the project), which contains files, and other package dependencies.
 The files are all installed under ``CMAKE_INSTALL_PREFIX``.
 The package dependencies are all black boxes; their files are not specified.

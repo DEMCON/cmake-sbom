@@ -119,7 +119,9 @@ function(sbom_generate)
 
 	if("${SBOM_GENERATE_CPE}" STREQUAL "")
 		cpe_detect(OUTPUT SBOM_GENERATE_CPE)
-		message(STATUS "Detected CPE: ${SBOM_GENERATE_CPE}")
+		if(DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS AND NOT CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
+			message(STATUS "Detected CPE: ${SBOM_GENERATE_CPE}")
+		endif()
 	endif()
 
 	if("${SBOM_GENERATE_LICENSE}" STREQUAL "")
@@ -338,19 +340,29 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-${SBOM_GENERATE_PROJECT}
 
 	install(CODE "set(SBOM_VERIFICATION_CODES \"\")")
 
-	set_property(GLOBAL PROPERTY SBOM_FILENAME "${SBOM_GENERATE_OUTPUT}")
+
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
+		set(_sbom_id 0)
+		set_property(GLOBAL PROPERTY sbom_spdxids 0)
+	else()
+		math(EXPR _sbom_id "${_sbom_id} + 1")
+	endif()
+
+	set_property(GLOBAL PROPERTY sbom_id "${_sbom_id}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_filename "${SBOM_GENERATE_OUTPUT}")
 	set(SBOM_FILENAME
 	    "${SBOM_GENERATE_OUTPUT}"
 	    PARENT_SCOPE
 	)
-	set_property(GLOBAL PROPERTY sbom_cpe "${SBOM_GENERATE_CPE}")
-	set_property(GLOBAL PROPERTY sbom_project "${SBOM_GENERATE_PROJECT}")
-	set_property(GLOBAL PROPERTY sbom_spdxids 0)
-	set_property(GLOBAL PROPERTY sbom_packages "")
-	set_property(GLOBAL PROPERTY sbom_licenses "")
-	set_property(GLOBAL PROPERTY sbom_relations "")
-	set_property(GLOBAL PROPERTY sbom_osv_file "${SBOM_GENERATE_OSV_QUERY}")
-	set_property(GLOBAL PROPERTY sbom_osv "")
+	set_property(GLOBAL PROPERTY SBOM_FILENAME "${_sbom}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_cpe "${SBOM_GENERATE_CPE}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_project "${SBOM_GENERATE_PROJECT}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_packages "")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_licenses "")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_relations "")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_osv_file "${SBOM_GENERATE_OSV_QUERY}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_osv "")
 
 	file(WRITE ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "")
 
@@ -423,22 +435,24 @@ function(sbom_finalize)
 		message(FATAL_ERROR "Unknown arguments: ${SBOM_FINALIZE_UNPARSED_ARGUMENTS}")
 	endif()
 
-	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
-	get_property(_sbom_cpe GLOBAL PROPERTY sbom_cpe)
-	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
 
-	if("${_sbom_project}" STREQUAL "")
+	if("${_sbom_id}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
-	get_property(_packages GLOBAL PROPERTY sbom_packages)
+	get_property(_sbom GLOBAL PROPERTY sbom_${_sbom_id}_filename)
+	get_property(_sbom_cpe GLOBAL PROPERTY sbom_${_sbom_id}_cpe)
+	get_property(_sbom_project GLOBAL PROPERTY sbom_${_sbom_id}_project)
+
+	get_property(_packages GLOBAL PROPERTY sbom_${_sbom_id}_packages)
 	foreach(_p IN LISTS _packages)
 		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT \"${_p}\")
 "
 		)
 	endforeach()
 
-	get_property(_licenses GLOBAL PROPERTY sbom_licenses)
+	get_property(_licenses GLOBAL PROPERTY sbom_${_sbom_id}_licenses)
 	foreach(_lic IN LISTS _licenses)
 		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt
 		     "install(SCRIPT \"${PROJECT_BINARY_DIR}/sbom/${_lic}.cmake\")
@@ -446,7 +460,7 @@ function(sbom_finalize)
 		)
 	endforeach()
 
-	get_property(_relations GLOBAL PROPERTY sbom_relations)
+	get_property(_relations GLOBAL PROPERTY sbom_${_sbom_id}_relations)
 	foreach(_rel IN LISTS _relations)
 		file(APPEND ${PROJECT_BINARY_DIR}/sbom/CMakeLists.txt "install(SCRIPT \"${_rel}\")
 "
@@ -528,8 +542,8 @@ function(sbom_finalize)
 	# Workaround for pre-CMP0082.
 	add_subdirectory(${PROJECT_BINARY_DIR}/sbom ${PROJECT_BINARY_DIR}/sbom)
 
-	get_property(_osv GLOBAL PROPERTY sbom_osv)
-	get_property(_osv_file GLOBAL PROPERTY sbom_osv_file)
+	get_property(_osv GLOBAL PROPERTY sbom_${_sbom_id}_osv)
+	get_property(_osv_file GLOBAL PROPERTY sbom_${_sbom_id}_osv_file)
 	if(NOT "${_osv}" STREQUAL "" AND NOT "${_osv_file}" STREQUAL "")
 		file(
 			WRITE "${_osv_file}"
@@ -543,12 +557,18 @@ ${_osv}
 	endif()
 
 	# Mark finalized.
+	math(EXPR _sbom_id "${_sbom_id} - 1")
+
+	if(_sbom_id LESS 0)
+		set(_sbom_id "")
+	endif()
+	set_property(GLOBAL PROPERTY sbom_id "${_sbom_id}")
+
 	set(SBOM_FILENAME
 	    "${_sbom}"
 	    PARENT_SCOPE
 	)
-	set_property(GLOBAL PROPERTY sbom_cpe "")
-	set_property(GLOBAL PROPERTY sbom_project "")
+	set_property(GLOBAL PROPERTY SBOM_FILENAME "${_sbom}")
 endfunction()
 
 # Append a package to the OSV JSON output file.
@@ -610,7 +630,12 @@ function(osv_add)
 		}"
 	)
 
-	get_property(_osv GLOBAL PROPERTY sbom_osv)
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
+		message(FATAL_ERROR "Call sbom_generate() first")
+	endif()
+
+	get_property(_osv GLOBAL PROPERTY sbom_${_sbom_id}_osv)
 	if("${_osv}" STREQUAL "")
 		set(_osv "${query}")
 	else()
@@ -619,7 +644,7 @@ ${query}"
 		)
 	endif()
 
-	set_property(GLOBAL PROPERTY sbom_osv "${_osv}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_osv "${_osv}")
 endfunction()
 
 # Append a file to the SBOM. Use this after calling sbom_generate().
@@ -655,8 +680,12 @@ function(sbom_file)
 		message(FATAL_ERROR "Missing FILETYPE argument")
 	endif()
 
-	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
-	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
+		message(FATAL_ERROR "Call sbom_generate() first")
+	endif()
+	get_property(_sbom GLOBAL PROPERTY sbom_${_sbom_id}_filename)
+	get_property(_sbom_project GLOBAL PROPERTY sbom_${_sbom_id}_project)
 
 	set(relationship "")
 	if(NOT "${SBOM_FILE_RELATIONSHIP}" STREQUAL "")
@@ -809,8 +838,12 @@ function(sbom_directory)
 		set(SBOM_DIRECTORY_LICENSE "NOASSERTION")
 	endif()
 
-	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
-	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
+		message(FATAL_ERROR "Call sbom_generate() first")
+	endif()
+	get_property(_sbom GLOBAL PROPERTY sbom_${_sbom_id}_filename)
+	get_property(_sbom_project GLOBAL PROPERTY sbom_${_sbom_id}_project)
 
 	if("${SBOM_DIRECTORY_RELATIONSHIP}" STREQUAL "")
 		set(SBOM_DIRECTORY_RELATIONSHIP
@@ -820,10 +853,6 @@ function(sbom_directory)
 		string(REPLACE "@SBOM_LAST_SPDXID@" "${SBOM_DIRECTORY_SPDXID}"
 			       SBOM_DIRECTORY_RELATIONSHIP "${SBOM_DIRECTORY_RELATIONSHIP}"
 		)
-	endif()
-
-	if("${_sbom_project}" STREQUAL "")
-		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
 	sbom_license_try("${SBOM_DIRECTORY_LICENSE}")
@@ -971,9 +1000,13 @@ ExternalRef: ${_ref}"
 		)
 	endforeach()
 
-	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
-	get_property(_sbom_cpe GLOBAL PROPERTY sbom_cpe)
-	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
+		message(FATAL_ERROR "Call sbom_generate() first")
+	endif()
+	get_property(_sbom GLOBAL PROPERTY sbom_${_sbom_id}_filename)
+	get_property(_sbom_cpe GLOBAL PROPERTY sbom_${_sbom_id}_cpe)
+	get_property(_sbom_project GLOBAL PROPERTY sbom_${_sbom_id}_project)
 
 	if("${SBOM_PACKAGE_RELATIONSHIP}" STREQUAL "")
 		set(SBOM_PACKAGE_RELATIONSHIP
@@ -983,10 +1016,6 @@ ExternalRef: ${_ref}"
 		string(REPLACE "@SBOM_LAST_SPDXID@" "${SBOM_PACKAGE_SPDXID}"
 			       SBOM_PACKAGE_RELATIONSHIP "${SBOM_PACKAGE_RELATIONSHIP}"
 		)
-	endif()
-
-	if("${_sbom_project}" STREQUAL "")
-		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
 
 	file(
@@ -1012,9 +1041,9 @@ Relationship: ${SBOM_PACKAGE_SPDXID} CONTAINS NOASSERTION
 			"
 	)
 
-	get_property(_packages GLOBAL PROPERTY sbom_packages)
+	get_property(_packages GLOBAL PROPERTY sbom_${_sbom_id}_packages)
 	list(APPEND _packages "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_PACKAGE_SPDXID}.cmake")
-	set_property(GLOBAL PROPERTY sbom_packages "${_packages}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_packages "${_packages}")
 endfunction()
 
 # Add a reference to a package in an external file.
@@ -1053,12 +1082,12 @@ function(sbom_external)
 	    PARENT_SCOPE
 	)
 
-	get_property(_sbom GLOBAL PROPERTY SBOM_FILENAME)
-	get_property(_sbom_project GLOBAL PROPERTY sbom_project)
-
-	if("${_sbom_project}" STREQUAL "")
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
 		message(FATAL_ERROR "Call sbom_generate() first")
 	endif()
+	get_property(_sbom GLOBAL PROPERTY sbom_${_sbom_id}_filename)
+	get_property(_sbom_project GLOBAL PROPERTY sbom_${_sbom_id}_project)
 
 	get_filename_component(sbom_dir "${_sbom}" DIRECTORY)
 
@@ -1103,9 +1132,9 @@ Relationship: ${SBOM_EXTERNAL_RELATIONSHIP}\")
 		"
 	)
 
-	get_property(_relations GLOBAL PROPERTY sbom_relations)
+	get_property(_relations GLOBAL PROPERTY sbom_${_sbom_id}_relations)
 	list(APPEND _relations "${CMAKE_CURRENT_BINARY_DIR}/${SBOM_EXTERNAL_SPDXID}.cmake")
-	set_property(GLOBAL PROPERTY sbom_relations "${_relations}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_relations "${_relations}")
 endfunction()
 
 # Append a LicenseRef-... license to the SBOM.
@@ -1149,7 +1178,11 @@ function(sbom_license)
 		message(FATAL_ERROR "Empty license text")
 	endif()
 
-	get_property(_licenses GLOBAL PROPERTY sbom_licenses)
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
+		message(FATAL_ERROR "Call sbom_generate() first")
+	endif()
+	get_property(_licenses GLOBAL PROPERTY sbom_${_sbom_id}_licenses)
 	if("${SBOM_LICENSE_LICENSE}" IN_LIST _licenses)
 		message(FATAL_ERROR "License already added")
 	endif()
@@ -1177,7 +1210,7 @@ ExtractedText: <text>\"
 	)
 
 	list(APPEND _licenses "${SBOM_LICENSE_LICENSE}")
-	set_property(GLOBAL PROPERTY sbom_licenses "${_licenses}")
+	set_property(GLOBAL PROPERTY sbom_${_sbom_id}_licenses "${_licenses}")
 endfunction()
 
 # Try to add a license to the SBOM.
@@ -1187,7 +1220,11 @@ function(sbom_license_try id)
 		return()
 	endif()
 
-	get_property(_licenses GLOBAL PROPERTY sbom_licenses)
+	get_property(_sbom_id GLOBAL PROPERTY sbom_id)
+	if("${_sbom_id}" STREQUAL "")
+		message(FATAL_ERROR "Call sbom_generate() first")
+	endif()
+	get_property(_licenses GLOBAL PROPERTY sbom_${_sbom_id}_licenses)
 	if("${id}" IN_LIST _licenses)
 		# Already included.
 		return()
