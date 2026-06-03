@@ -211,7 +211,7 @@ ExternalRef: ${SBOM_GENERATE_EXTREF}"
 	install(
 		CODE "
 		set(_sbom_output \"${SBOM_GENERATE_OUTPUT}\")
-		if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_output}\")
+		if(UNIX AND NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_output}\")
 			set(_sbom_output \"\$ENV{DESTDIR}\${_sbom_output}\")
 		endif()
 		message(STATUS \"Installing: \${_sbom_output}\")
@@ -457,7 +457,7 @@ function(sbom_finalize)
 		WRITE ${PROJECT_BINARY_DIR}/sbom/verify.cmake
 		"
 		set(_sbom \"${_sbom}\")
-		if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom}\")
+		if(UNIX AND NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom}\")
 			set(_sbom \"\$ENV{DESTDIR}\${_sbom}\")
 		endif()
 		message(STATUS \"Finalizing: \${_sbom}\")
@@ -683,7 +683,7 @@ Relationship: ${SBOM_FILE_RELATIONSHIP}"
 			cmake_policy(SET CMP0011 NEW)
 			cmake_policy(SET CMP0012 NEW)
 			set(_sbom_install_prefix \"\${CMAKE_INSTALL_PREFIX}\")
-			if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_install_prefix}\")
+			if(UNIX AND NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_install_prefix}\")
 				set(_sbom_install_prefix \"\$ENV{DESTDIR}\${_sbom_install_prefix}\")
 			endif()
 			set(_sbom_file \"\${_sbom_install_prefix}/${SBOM_FILE_FILENAME}\")
@@ -834,7 +834,7 @@ function(sbom_directory)
 		CONTENT
 			"
 			set(_sbom_install_prefix \"\${CMAKE_INSTALL_PREFIX}\")
-			if(NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_install_prefix}\")
+			if(UNIX AND NOT \"\$ENV{DESTDIR}\" STREQUAL \"\" AND IS_ABSOLUTE \"\${_sbom_install_prefix}\")
 				set(_sbom_install_prefix \"\$ENV{DESTDIR}\${_sbom_install_prefix}\")
 			endif()
 			file(GLOB_RECURSE _files
