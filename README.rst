@@ -31,6 +31,8 @@ To integrate this library in your project, see `below <sec_how_to_use_>`_ for ba
    **Contents**
 
    - `Version extraction <sec_version_extraction_>`_
+   - `CPE detection <sec_cpe_detection_>`_
+      - `cpe_detect() <sec_cpe_detect_>`_
    - `SBOM generation <sec_sbom_generation_>`_
       - `sbom_spdxid() <sec_sbom_spdxid_>`_
       - `sbom_generate() <sec_sbom_generate_>`_
@@ -111,6 +113,57 @@ When ``${PROJECT_VERSION}`` is empty and a valid Semantic Versioning tag is dete
 
 
 
+.. _sec_cpe_detection:
+
+|  
+
+CPE detection
+-------------
+
+This project also provides a separate CMake module for detecting a Common Platform Enumeration (CPE) string for the current platform.
+
+To use it, make sure that the ``cmake`` directory is in your ``CMAKE_MODULE_PATH``.
+Then call ``include(cpe)`` from your ``CMakeLists.txt``.
+
+``cmake/cpe.cmake`` provides the following function:
+
+
+
+.. _sec_cpe_detect:
+
+|  
+
+``cpe_detect``
+``````````````
+
+Detect a CPE string for the current platform.
+
+.. code:: cmake
+
+   cpe_detect(
+      OUTPUT <variable_name>
+      [DEFAULT <cpe>]
+   )
+
+``OUTPUT``
+   Mandatory output variable name that receives the detected CPE string.
+
+``DEFAULT``
+   Optional fallback CPE string that is used when automatic detection is not possible.
+   When omitted, it defaults to ``${CPE_FALLBACK}``.
+
+The function is intended to work as a standalone helper and does not require the SBOM module.
+
+Example:
+
+.. code:: cmake
+
+   include(cpe)
+   cpe_detect(OUTPUT my_cpe)
+   message(STATUS "Detected CPE: ${my_cpe}")
+
+
+
 .. _sec_sbom_generation:
 
 |  
@@ -129,7 +182,7 @@ Generally, the following sequence is executed to create the SBOM:
 
 .. code:: cmake
    
-   # Start SBOM generation. Optionally, provide template files, licence, copyright.
+   # Start SBOM generation. Optionally, provide template files, license, copyright.
    sbom_generate(OUTPUT some_output_file.spdx)
    
    # Call for every artifact that should be recorded:
@@ -164,7 +217,7 @@ Generate a unique SPDX identifier.
    )
 
 ``VARIABLE``
-   The output variable to generate a unique SDPX identifier in.
+   The output variable to generate a unique SPDX identifier in.
 
 ``CHECK``
    Verify and return the given identifier.
@@ -191,6 +244,7 @@ Generate the header of the SBOM, based on a standard template where the given de
       [OUTPUT <filename>]
       [INPUT <filename>...]
       [COPYRIGHT <string>]
+      [CPE <cpe>]
       [LICENSE <string>]
       [NAMESPACE <URI>]
       [DOWNLOAD_URL <URL>]
@@ -217,6 +271,10 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``COPYRIGHT``
    Copyright information.
    If not specified, it is generated as ``<year> <supplier>``.
+
+``CPE``
+   Common Platform Enumeration (CPE) for the generated package.
+   If not specified, ``sbom_generate()`` detects one automatically using ``cpe_detect()``.
 
 ``LICENSE``
    License information.

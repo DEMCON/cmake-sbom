@@ -1,6 +1,6 @@
 @echo off
 
-rem SPDX-FileCopyrightText: 2023-2024 Jochem Rutgers
+rem SPDX-FileCopyrightText: 2023-2026 Jochem Rutgers
 rem
 rem SPDX-License-Identifier: MIT
 
@@ -32,7 +32,7 @@ if not exist build mkdir build
 if errorlevel 1 goto error
 cd build
 if errorlevel 1 goto error
-cmake ..\..\.. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="%cmake_here%/build/deploy" -DPython3_EXECUTABLE="%cmake_here%/../venv/Scripts/python.exe" %*
+cmake ..\..\.. -Wdev -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX="%cmake_here%/build/deploy" -DPython3_EXECUTABLE="%cmake_here%/../venv/Scripts/python.exe" %*
 if errorlevel 1 goto error
 cmake --build . --target install
 if errorlevel 1 goto error
