@@ -137,6 +137,32 @@ function(_cpe_detect_linux_distrib output_id output_version output_id_like)
 	)
 endfunction()
 
+function(_cpe_detect_macos_version output_version)
+	set(_version "-")
+
+	if((CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
+	   AND NOT CMAKE_CROSSCOMPILING
+	)
+		find_program(_sw_vers sw_vers)
+		if(_sw_vers)
+			execute_process(
+				COMMAND "${_sw_vers}" -productVersion
+				OUTPUT_VARIABLE _version_raw
+				OUTPUT_STRIP_TRAILING_WHITESPACE
+				ERROR_QUIET
+			)
+			if(NOT "${_version_raw}" STREQUAL "")
+				_cpe_normalize_component("${_version_raw}" _version)
+			endif()
+		endif()
+	endif()
+
+	set(${output_version}
+	    "${_version}"
+	    PARENT_SCOPE
+	)
+endfunction()
+
 function(cpe_detect)
 	set(options)
 	set(oneValueArgs OUTPUT DEFAULT)
@@ -171,7 +197,9 @@ function(cpe_detect)
 			set(_cpe "cpe:2.3:o:microsoft:windows_11:-:*:*:*:*:*:${_arch}:*")
 		endif()
 	elseif(APPLE)
-		set(_cpe "cpe:2.3:o:apple:mac_os:-:*:*:*:*:*:${_arch}:*")
+		set(_version "-")
+		_cpe_detect_macos_version(_version)
+		set(_cpe "cpe:2.3:o:apple:mac_os:${_version}:*:*:*:*:*:${_arch}:*")
 	elseif(ANDROID)
 		set(_cpe "cpe:2.3:o:google:android:-:*:*:*:*:*:${_arch}:*")
 	elseif(UNIX)
