@@ -245,6 +245,7 @@ Generate the header of the SBOM, based on a standard template where the given de
       [INPUT <filename>...]
       [COPYRIGHT <string>]
       [CPE <cpe>]
+      [SPDX_VERSION <version>]
       [LICENSE <string>]
       [NAMESPACE <URI>]
       [DOWNLOAD_URL <URL>]
@@ -275,6 +276,11 @@ Generate the header of the SBOM, based on a standard template where the given de
 ``CPE``
    Common Platform Enumeration (CPE) for the generated package.
    If not specified, ``sbom_generate()`` detects one automatically using ``cpe_detect()``.
+
+``SPDX_VERSION``
+   SPDX version for the generated document.
+   Supported values are ``2.2`` and ``2.3``.
+   When omitted, ``2.3`` is used.
 
 ``LICENSE``
    License information.

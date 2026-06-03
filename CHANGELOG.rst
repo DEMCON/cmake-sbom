@@ -38,6 +38,7 @@ Added
 - Split off CPE detection to ``cpe_detect()`` (``cmake/cpe.cmake``) to detect CPE for the current
   system, and use it in the generated SBOM.
 - ``CPE`` parameter to ``sbom_generate()`` to specify CPE for the generated SBOM.
+- Support SPDX 2.2 output, for better tool compatibility.
 
 Fixed
 `````
